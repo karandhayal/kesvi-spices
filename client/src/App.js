@@ -9,7 +9,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
-import Shop from './pages/Shop'; 
+import Shop from './pages/shop'; 
 import Distributor from './pages/Distributor';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
