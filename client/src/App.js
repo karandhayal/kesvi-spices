@@ -13,7 +13,7 @@ import Shop from './pages/shop';
 import Distributor from './pages/Distributor';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
-
+import AdminDashboard from './pages/AdminDashboard';
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'; 
@@ -45,6 +45,7 @@ function App() {
                 <Route path="/distributor" element={<Distributor />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
+                <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </main>
 
