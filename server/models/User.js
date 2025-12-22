@@ -1,0 +1,16 @@
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true }, // <--- Added Phone
+  password: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false },
+  
+  // OTP Verification Fields
+  otp: { type: String },
+  otpExpires: { type: Date },
+  isVerified: { type: Boolean, default: false } 
+}, { timestamps: true });
+
+module.exports = mongoose.model('User', UserSchema);
