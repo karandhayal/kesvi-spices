@@ -23,7 +23,7 @@ import { AuthProvider } from './context/AuthContext';
 // axios.defaults.baseURL = "http://localhost:5000"; 
 
 // STEP B: Uncomment "Render URL" when pushing to GitHub/Vercel
-axios.defaults.baseURL = "https://kesvi-spices-backend.onrender.com"; 
+axios.defaults.baseURL = "https://kesvi-spices.onrender.com"; 
 
 axios.defaults.withCredentials = true; // Important for secure cookies
 
