@@ -16,7 +16,6 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // CHANGED: specific domain removed, uses global base URL
         const { data } = await axios.get('/api/products'); 
         setProducts(data);
         setLoading(false);
@@ -93,9 +92,10 @@ const Shop = () => {
       <main className="max-w-7xl mx-auto px-4 md:px-12 py-12">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-10">
           {processedProducts.map((product) => (
+            // UPDATED: Passing the full object
             <ProductCard 
               key={product._id} 
-              {...product} 
+              product={product} 
             />
           ))}
         </div>

@@ -1,157 +1,146 @@
 const products = [
-  { 
-    name: "Parosa Brown Atta", 
-    slug: "parosa-brown-atta",
-    tag: "Wheat Flour", 
-    price: 499, 
-    originalPrice: 550, 
-    benefits: "Stone Ground | 100% Whole Wheat", 
-    category: "Wheat Flour",
-    description: "Premium stone-ground wheat flour that preserves natural nutrients.",
-    image: "/images/atta.png", // Ensure this matches your public/images folder
-    countInStock: 100,
-    rating: 4.5,
-    numReviews: 12
-  },
-  { 
-    name: "Panchratan Multigrain Atta", 
-    slug: "panchratan-multigrain-atta",
-    tag: "Wheat Flour", 
-    price: 620, 
-    originalPrice: 700, 
-    benefits: "5 Essential Grains | Protein Rich", 
-    category: "Wheat Flour",
-    description: "A healthy blend of 5 grains for a protein-packed diet.",
-    image: "/images/multigrain.png",
-    countInStock: 100,
-    rating: 4.8,
-    numReviews: 8
-  },
-  { 
-    name: "Chakki Fresh Atta", 
-    slug: "chakki-fresh-atta",
-    tag: "Wheat Flour", 
-    price: 420, 
-    originalPrice: 480, 
-    benefits: "Soft Rotis | Farm Fresh", 
-    category: "Wheat Flour",
-    description: "Farm fresh wheat ground to perfection for soft rotis.",
-    image: "/images/chakki.png",
-    countInStock: 100,
-    rating: 4.3,
-    numReviews: 15
-  },
-  { 
-    name: "Jodhpuri Red Chilli", 
-    slug: "jodhpuri-red-chilli",
-    tag: "Spices", 
-    price: 240, 
-    originalPrice: 280, 
-    benefits: "Vibrant Color | Mild Heat", 
+  {
+    name: "Premium Turmeric Powder",
+    slug: "turmeric-powder",
     category: "Spices",
-    description: "Authentic Jodhpuri chillies known for their brilliant red color.",
-    image: "/images/chilli.png",
+    tag: "Best Seller",
+    image: "/products/turmeric.png", // Matches client/public/products/turmeric.jpg
+    benefits: "High Curcumin Content • Immunity Booster",
+    description: "Our Turmeric is sourced from the finest farms in Salem. Stone-ground to preserve natural oils and the potent active compound Curcumin. No artificial colors, just pure golden goodness.",
+    price: 99, 
+    originalPrice: 140,
     countInStock: 50,
-    rating: 5.0,
-    numReviews: 20
+    variants: [
+      { weight: "250g", price: 99, originalPrice: 140 },
+      { weight: "500g", price: 190, originalPrice: 280 }
+    ]
   },
-  { 
-    name: "Salem Turmeric Powder", 
-    slug: "salem-turmeric-powder",
-    tag: "Spices", 
-    price: 180, 
-    originalPrice: 220, 
-    benefits: "High Curcumin | Sun-Dried", 
+  {
+    name: "Premium Red Chilli Powder",
+    slug: "kashmiri-chilli-powder",
     category: "Spices",
-    description: "High curcumin turmeric sourced directly from Salem.",
-    image: "/images/turmeric.png",
-    countInStock: 60,
-    rating: 4.7,
-    numReviews: 10
+    tag: "Vibrant Color",
+    image: "/products/chilli.png",
+    benefits: "Rich Color • Low Heat • 100% Natural",
+    description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
+    price: 120,
+    originalPrice: 160,
+    countInStock: 50,
+    variants: [
+      { weight: "250g", price: 120, originalPrice: 160 },
+      { weight: "500g", price: 230, originalPrice: 320 }
+    ]
   },
-  { 
-    name: "Teja Red Chilli Powder", 
-    slug: "teja-red-chilli-powder",
-    tag: "Spices", 
-    price: 260, 
-    originalPrice: 310, 
-    benefits: "Extremely Spicy | Premium Quality", 
+  {
+    name: "Jodhpur Red Chilli Powder",
+    slug: "jodhpuri-chilli-powder",
     category: "Spices",
-    description: "Fiery hot Teja chilli powder for those who love spice.",
-    image: "/images/teja.png",
-    countInStock: 40,
-    rating: 4.6,
-    numReviews: 5
+    tag: "Vibrant Color",
+    image: "/products/jodhpurichilli.jpg",
+    benefits: "Rich Color • Low Heat • 100% Natural",
+    description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
+    price: 120,
+    originalPrice: 160,
+    countInStock: 50,
+    variants: [
+      { weight: "250g", price: 120, originalPrice: 160 },
+      { weight: "500g", price: 230, originalPrice: 320 }
+    ]
   },
-  { 
-    name: "Kachi Ghani Mustard Oil", 
-    slug: "kachi-ghani-mustard-oil",
-    tag: "Mustard Oil", 
-    price: 195, 
-    originalPrice: 230, 
-    benefits: "Traditional Extraction | Pure", 
+  {
+    name: "Teja Red Chilli Powder",
+    slug: "teja-chilli-powder",
+    category: "Spices",
+    tag: "Vibrant Color",
+    image: "/products/tejachilli.jpg",
+    benefits: "Rich Color • Low Heat • 100% Natural",
+    description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
+    price: 120,
+    originalPrice: 160,
+    countInStock: 50,
+    variants: [
+      { weight: "250g", price: 120, originalPrice: 160 },
+      { weight: "500g", price: 230, originalPrice: 320 }
+    ]
+  },
+  {
+    name: "Coriander Powder (Dhaniya)",
+    slug: "coriander-powder",
+    category: "Spices",
+    tag: "",
+    image: "/products/coriander.png",
+    benefits: "Fresh Aroma • Digestive Aid",
+    description: "Made from roasted coriander seeds to release a citrusy, nutty flavor. Essential for thickening gravies and adding a fresh aroma to Indian dishes.",
+    price: 80,
+    originalPrice: 110,
+    countInStock: 50,
+    variants: [
+      { weight: "250g", price: 80, originalPrice: 110 },
+      { weight: "500g", price: 150, originalPrice: 220 }
+    ]
+  },
+  {
+    name: "Chakki Fresh Atta",
+    slug: "mp-sharbati-atta",
+    category: "Wheat Flour",
+    tag: "Premium",
+    image: "/products/wheat.jpg",
+    benefits: "100% MP Sharbati • Soft Rotis for 12hrs",
+    description: "The gold standard of wheat. Our Sharbati wheat is sourced from Sehore, MP. Stone-ground (Chakki Fresh) to ensure the bran and germ are intact for maximum fiber.",
+    price: 350,
+    originalPrice: 450,
+    countInStock: 20,
+    variants: [
+      { weight: "5kg", price: 350, originalPrice: 450 },
+      { weight: "10kg", price: 680, originalPrice: 900 }
+    ]
+  },
+  {
+    name: "Brown Atta",
+    slug: "parosa-brown-atta",
+    category: "Wheat Flour",
+    tag: "Premium",
+    image: "/products/wheat.jpg",
+    benefits: "100% MP Sharbati • Soft Rotis for 12hrs",
+    description: "The gold standard of wheat. Our Sharbati wheat is sourced from Sehore, MP. Stone-ground (Chakki Fresh) to ensure the bran and germ are intact for maximum fiber.",
+    price: 350,
+    originalPrice: 450,
+    countInStock: 20,
+    variants: [
+      { weight: "5kg", price: 350, originalPrice: 450 },
+      { weight: "10kg", price: 680, originalPrice: 900 }
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil",
+    slug: "mustard-oil",
     category: "Mustard Oil",
-    description: "Cold-pressed mustard oil with a strong, pungent aroma.",
-    image: "/images/oil.png",
-    countInStock: 80,
-    rating: 4.9,
-    numReviews: 25
+    tag: "Kachi Ghani",
+    image: "/products/mustard.jpg",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 220,
+    originalPrice: 280,
+    countInStock: 30,
+    variants: [
+      { weight: "1L", price: 220, originalPrice: 280 },
+      { weight: "5L", price: 1050, originalPrice: 1400 }
+    ]
   },
-  { 
-    name: "1482 Rajasthani Wheat", 
-    slug: "1482-rajasthani-wheat",
-    tag: "Graded Wheat", 
-    price: 2100, 
-    originalPrice: 2400, 
-    benefits: "Premium Sharbati Grade", 
-    category: "Graded Wheat",
-    description: "Premium graded wheat grains for bulk purchase.",
-    image: "/images/wheat1.png",
-    countInStock: 20,
-    rating: 4.8,
-    numReviews: 4
-  },
-  { 
-    name: "Sarbati Wheat", 
-    slug: "sarbati-wheat",
-    tag: "Graded Wheat", 
-    price: 2300, 
-    originalPrice: 2600, 
-    benefits: "Superior Quality Grains", 
-    category: "Graded Wheat",
-    description: "The finest Sharbati wheat grains from Madhya Pradesh.",
-    image: "/images/wheat2.png",
-    countInStock: 20,
-    rating: 5.0,
-    numReviews: 6
-  },
-  { 
-    name: "Pure Wheat Choker", 
-    slug: "pure-wheat-choker",
-    tag: "Animal Feed", 
-    price: 850, 
-    originalPrice: 1000, 
-    benefits: "Nutritious Bran", 
-    category: "Animal Feed",
-    description: "High-fiber wheat bran for cattle feed.",
-    image: "/images/choker.png",
-    countInStock: 200,
-    rating: 4.2,
-    numReviews: 3
-  },
-  { 
-    name: "Mustard Cake (Khal)", 
-    slug: "mustard-cake-khal",
-    tag: "Animal Feed", 
-    price: 1200, 
-    originalPrice: 1400, 
-    benefits: "High Protein Content", 
-    category: "Animal Feed",
-    description: "Nutrient-rich mustard cake for livestock.",
-    image: "/images/khal.png",
-    countInStock: 150,
-    rating: 4.5,
-    numReviews: 7
+  {
+    name: "Multigrain Flour",
+    slug: "multigrain-atta",
+    category: "Wheat Flour",
+    tag: "High Fiber",
+    image: "/products/multigrain.jpg",
+    benefits: "7 Grains Mix • Low GI • Diabetic Friendly",
+    description: "A powerful blend of Wheat, Oats, Ragi, Chana, Maize, Barley, and Soy. Perfect for those looking to add more fiber and protein to their daily diet.",
+    price: 400,
+    originalPrice: 500,
+    countInStock: 25,
+    variants: [
+      { weight: "5kg", price: 400, originalPrice: 500 }
+    ]
   }
 ];
 

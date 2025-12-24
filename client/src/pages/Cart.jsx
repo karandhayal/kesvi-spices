@@ -36,21 +36,30 @@ const Cart = () => {
           {/* --- CART ITEMS LIST --- */}
           <div className="flex-1 space-y-6">
             {cartItems.map((item) => (
-              <div key={`${item.productId}-${item.variant}`} className="flex flex-col md:flex-row items-center bg-white p-6 shadow-sm border border-gray-100 relative">
+              // UPDATED: Key now includes variant to prevent duplicates
+              <div key={`${item.productId}-${item.variant || 'def'}`} className="flex flex-col md:flex-row items-center bg-white p-6 shadow-sm border border-gray-100 relative">
                 
                 {/* Product Image */}
                 <div className="w-24 h-24 flex-shrink-0 bg-gray-50 mb-4 md:mb-0 md:mr-6">
                   <img 
                     src={item.image || "https://via.placeholder.com/150"} 
-                    alt={item.title} 
+                    alt={item.name || item.title} 
                     className="w-full h-full object-cover" 
                   />
                 </div>
 
                 {/* Product Details */}
                 <div className="flex-1 text-center md:text-left mb-4 md:mb-0">
-                  <h3 className="text-lg font-serif text-parosa-dark">{item.title}</h3>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">{item.variant}</p>
+                  {/* Handle both 'name' and 'title' properties */}
+                  <h3 className="text-lg font-serif text-parosa-dark">{item.name || item.title}</h3>
+                  
+                  {/* UPDATED: Only show variant if it exists */}
+                  {item.variant && (
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full mt-1 inline-block">
+                       Size: {item.variant}
+                    </span>
+                  )}
+                  
                   <p className="text-parosa-accent font-medium mt-2">
                     ₹{Number(item.price) || 0}
                   </p>
