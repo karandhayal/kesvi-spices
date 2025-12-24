@@ -3,7 +3,22 @@ const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const Cart = require('../models/Cart');
 
-// 1. VALIDATE COUPON
+// ==========================================
+// 1. ADMIN ROUTE (MUST BE AT THE TOP!)
+// ==========================================
+// If this is below /:userId, it will break.
+router.get('/all', async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.status(200).json(orders);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// ==========================================
+// 2. COUPON VALIDATION
+// ==========================================
 router.post('/validate-coupon', async (req, res) => {
   try {
     const { code, cartTotal } = req.body;
@@ -39,7 +54,9 @@ router.post('/validate-coupon', async (req, res) => {
   }
 });
 
-// 2. CREATE ORDER (FIXED: NaN Protection)
+// ==========================================
+// 3. CREATE ORDER (With Calculations)
+// ==========================================
 router.post('/create', async (req, res) => {
   const { userId, address, paymentMethod, couponCode, upiDiscount } = req.body;
 
@@ -50,16 +67,15 @@ router.post('/create', async (req, res) => {
       return res.status(400).send("Cart is empty");
     }
 
-    // B. Calculate Subtotal (With Safety Checks)
+    // B. Calculate Subtotal
     let subtotal = 0;
     cart.products.forEach(item => {
-      const price = Number(item.price) || 0;     // Force Number
-      const qty = Number(item.quantity) || 1;    // Force Number
+      const price = Number(item.price) || 0;     
+      const qty = Number(item.quantity) || 1;    
       subtotal += (price * qty);
     });
 
     // C. Calculate Shipping
-    // Ensure subtotal is a number before comparing
     const safeSubtotal = Number(subtotal) || 0;
     let shippingFee = safeSubtotal > 499 ? 0 : 50; 
     let discount = 0;
@@ -82,7 +98,7 @@ router.post('/create', async (req, res) => {
        discount += extraOff;
     }
 
-    // F. Final Amount (Ensure no negatives or NaN)
+    // F. Final Amount
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
 
     // G. Create Order
@@ -91,28 +107,46 @@ router.post('/create', async (req, res) => {
       products: cart.products,
       amount: finalAmount,      
       subtotal: safeSubtotal,
-      discount: Math.floor(discount), // Store discount as whole number
+      discount: Math.floor(discount),
       couponCode,
       shippingFee,
       address,
       paymentMethod,
-      paymentStatus: 'pending' // Default to pending for everyone
+      paymentStatus: 'Pending' // Use proper case
     });
 
     const savedOrder = await newOrder.save();
 
-    // H. Clear Cart (Optional: Uncomment next line if you want to clear cart immediately)
+    // H. Clear Cart (Uncomment when ready)
     // await Cart.findOneAndDelete({ userId }); 
 
     res.status(200).json({ success: true, order: savedOrder });
 
   } catch (err) {
-    console.error("Order Creation Error:", err); // Log the real error to console
+    console.error("Order Creation Error:", err); 
     res.status(500).send("Order creation failed: " + err.message);
   }
 });
 
-// 3. GET USER ORDERS
+// ==========================================
+// 4. UPDATE ORDER (Required for Admin)
+// ==========================================
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true }
+    );
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+// ==========================================
+// 5. GET USER ORDERS (Must be LAST)
+// ==========================================
 router.get('/:userId', async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 });
@@ -121,13 +155,5 @@ router.get('/:userId', async (req, res) => {
     res.status(500).json(err);
   }
 });
-// GET ALL ORDERS (Admin Only)
-router.get('/all', async (req, res) => {
-    try {
-        const orders = await Order.find().sort({ createdAt: -1 });
-        res.status(200).json(orders);
-    } catch (err) {
-        res.status(500).json(err);
-    }
-});
+
 module.exports = router;

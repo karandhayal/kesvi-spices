@@ -30,7 +30,7 @@ app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/cart', require('./routes/cart')); 
 app.use('/api/orders', require('./routes/order'));
 app.use('/api/payment', require('./routes/payment'));
-
+app.use('/api/shipping', require('./routes/shipping'));
 // Base Route (Health Check)
 app.get('/', (req, res) => {
   res.send('Kesvi API is live.');
