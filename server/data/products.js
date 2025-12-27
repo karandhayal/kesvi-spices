@@ -7,12 +7,12 @@ const products = [
     image: "/products/turmeric.png", // Matches client/public/products/turmeric.jpg
     benefits: "High Curcumin Content • Immunity Booster",
     description: "Our Turmeric is sourced from the finest farms in Salem. Stone-ground to preserve natural oils and the potent active compound Curcumin. No artificial colors, just pure golden goodness.",
-    price: 99, 
-    originalPrice: 140,
+    price: 165, 
+    originalPrice: 250,
     countInStock: 50,
     variants: [
-      { weight: "250g", price: 99, originalPrice: 140 },
-      { weight: "500g", price: 190, originalPrice: 280 }
+      { weight: "500g", price: 165, originalPrice: 250 },
+      { weight: "250g", price: 90, originalPrice: 130 }
     ]
   },
   {
@@ -23,12 +23,12 @@ const products = [
     image: "/products/chilli.png",
     benefits: "Rich Color • Low Heat • 100% Natural",
     description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 120,
-    originalPrice: 160,
+    price: 174,
+    originalPrice: 275,
     countInStock: 50,
     variants: [
-      { weight: "250g", price: 120, originalPrice: 160 },
-      { weight: "500g", price: 230, originalPrice: 320 }
+      { weight: "500g", price: 174, originalPrice: 275 },
+      { weight: "250g", price: 93, originalPrice: 140 }
     ]
   },
   {
@@ -71,12 +71,12 @@ const products = [
     image: "/products/coriander.png",
     benefits: "Fresh Aroma • Digestive Aid",
     description: "Made from roasted coriander seeds to release a citrusy, nutty flavor. Essential for thickening gravies and adding a fresh aroma to Indian dishes.",
-    price: 80,
-    originalPrice: 110,
+    price: 102,
+    originalPrice: 150,
     countInStock: 50,
     variants: [
-      { weight: "250g", price: 80, originalPrice: 110 },
-      { weight: "500g", price: 150, originalPrice: 220 }
+      { weight: "500g", price: 102, originalPrice: 150 },
+      { weight: "250g", price: 80, originalPrice: 110 }
     ]
   },
   {

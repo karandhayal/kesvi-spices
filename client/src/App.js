@@ -4,7 +4,7 @@ import axios from 'axios'; // Import Axios
 
 // 1. Import Components
 import Navbar from './components/Navbar';
-
+import Footer from './components/Footer';
 // 2. Import Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -14,6 +14,7 @@ import Distributor from './pages/Distributor';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import AdminDashboard from './pages/AdminDashboard';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'; 
@@ -46,9 +47,11 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/privacypolicy" element={<PrivacyPolicy />} />
               </Routes>
             </main>
 
+            <Footer />
           </div>
         </Router>
       </CartProvider>
