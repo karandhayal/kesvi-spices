@@ -19,7 +19,9 @@ app.use(cors({
   origin: [
     'http://localhost:3000',               // Local React
     'https://kesvi-spices.vercel.app',     // Your Future Vercel Domain (Update this later if different)
-    'https://kesvi-brand.vercel.app'       // Alternative common name
+    'https://kesvi-brand.vercel.app'
+    'https://parosa.co.in'
+    'https://www.parosa.co.in'       // Alternative common name
   ],
   credentials: true
 }));
