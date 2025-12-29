@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import axios from 'axios'; // Import Axios
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 // 1. Import Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+
 // 2. Import Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -16,7 +17,8 @@ import OrderSuccess from './pages/OrderSuccess';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
-import ProductDetails from './pages/ProductDetails'
+import ProductDetails from './pages/ProductDetails';
+
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'; 
@@ -28,41 +30,51 @@ import { AuthProvider } from './context/AuthContext';
 // STEP B: Uncomment "Render URL" when pushing to GitHub/Vercel
 axios.defaults.baseURL = "https://kesvi-spices.onrender.com"; 
 
-axios.defaults.withCredentials = true; // Important for secure cookies
+axios.defaults.withCredentials = true; 
 
-function App() {
+// --- HELPER COMPONENT FOR LAYOUT LOGIC ---
+// This component sits inside the Router, so useLocation works here
+const AppContent = () => {
   const location = useLocation();
 
   // Check if the current route is the admin panel
-  const isAdminRoute = location.pathname === '/admin';
+  // used .startsWith in case you have /admin/products, /admin/orders etc.
+  const isAdminRoute = location.pathname.startsWith('/admin'); 
+
+  return (
+    <div className="min-h-screen bg-kesvi-bg font-sans selection:bg-kesvi-accent selection:text-white">
+      {/* Only show Navbar if NOT on admin page */}
+      {!isAdminRoute && <Navbar />}
+
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/distributor" element={<Distributor />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/privacypolicy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </main>
+
+      {/* Only show Footer if NOT on admin page */}
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+};
+
+// --- MAIN APP COMPONENT ---
+function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
-          <div className="min-h-screen bg-kesvi-bg font-sans selection:bg-kesvi-accent selection:text-white">
-            
-            {/* Only show Navbar if NOT on admin page */}
-            {!isAdminRoute && <Navbar />}
-
-            <main>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/distributor" element={<Distributor />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/privacypolicy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/product/:slug" element={<ProductDetails />} />
-              </Routes>
-            </main>
-
-            {/* Only show Footer if NOT on admin page */}
-            {!isAdminRoute && <Footer />}
-          </div>
+          <AppContent />
         </Router>
       </CartProvider>
     </AuthProvider>
