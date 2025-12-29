@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingBag, ShieldCheck, Truck, RotateCcw, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
+import { useCart } from '../context/CartContext'; // Import Cart Context
 
 const ProductDetails = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
+  const { addToCart } = useCart(); // Use the context hook
 
   // State
   const [product, setProduct] = useState(null);
@@ -16,18 +17,17 @@ const ProductDetails = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [qty, setQty] = useState(1);
 
-  // 1. Fetch Data from Backend
+  // 1. Fetch Data
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        // Uses the Environment Variable or falls back to localhost for dev
         const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         const { data } = await axios.get(`${apiUrl}/api/products/${slug}`);
         
         setProduct(data);
         
-        // Auto-select the first variant if available
+        // Auto-select the first variant
         if (data.variants && data.variants.length > 0) {
           setSelectedVariant(data.variants[0]);
         }
@@ -41,22 +41,33 @@ const ProductDetails = () => {
     fetchProduct();
   }, [slug]);
 
-  // 2. Handle Add to Cart
-  const addToCartHandler = () => {
-    // This sends the data to your Cart page via the URL
-    // If you have a specific size selected, we pass that info
-    const variantInfo = selectedVariant ? `&variant=${selectedVariant.weight}` : '';
-    navigate(`/cart/${product._id}?qty=${qty}${variantInfo}`);
+  // 2. Handle Add to Cart (Fixed)
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    // Determine correct price/weight based on selection
+    const priceToUse = selectedVariant ? selectedVariant.price : product.price;
+    const weightToUse = selectedVariant ? selectedVariant.weight : (product.variants?.[0]?.weight || "Standard");
+
+    addToCart({
+      id: product._id,
+      name: product.name,
+      price: priceToUse,
+      image: product.image,
+      variant: weightToUse,
+      quantity: qty
+    });
+    
+    // Optional: You could add a toast notification here
+    // alert("Added to cart!"); 
   };
 
-  // Loading State
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-parosa-bg">
       <div className="animate-pulse text-parosa-dark font-serif text-xl">Loading pure goodness...</div>
     </div>
   );
 
-  // Error State
   if (error || !product) return (
     <div className="min-h-screen flex items-center justify-center bg-parosa-bg">
       <div className="text-center">
@@ -66,10 +77,10 @@ const ProductDetails = () => {
     </div>
   );
 
-  // Calculate Discount if variant exists
+  // Calculate Display Values
   const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-  const originalPrice = selectedVariant ? selectedVariant.originalPrice : product.originalPrice; // Assuming you might add this to DB later
-  
+  const originalPrice = selectedVariant ? selectedVariant.originalPrice : product.originalPrice;
+
   return (
     <div className="bg-parosa-bg min-h-screen pb-20 pt-24 md:pt-32">
       <div className="max-w-7xl mx-auto px-6">
@@ -83,17 +94,14 @@ const ProductDetails = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
           
-          {/* LEFT: Image Section */}
+          {/* LEFT: Image */}
           <div className="relative group">
             <div className="aspect-square bg-white border border-gray-200 p-8 flex items-center justify-center relative overflow-hidden rounded-sm shadow-sm">
-              {/* Actual Image from DB */}
               <img 
                 src={product.image} 
                 alt={product.name} 
                 className="w-full h-full object-contain hover:scale-105 transition-transform duration-700 ease-out" 
               />
-              
-              {/* Tag Badge */}
               {product.tag && (
                 <div className="absolute top-4 left-4 bg-red-700 text-white text-[10px] px-3 py-1.5 font-bold uppercase tracking-widest shadow-md">
                   {product.tag}
@@ -102,10 +110,9 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          {/* RIGHT: Info Section */}
+          {/* RIGHT: Info */}
           <div className="flex flex-col justify-center">
             
-            {/* Title & Price */}
             <div className="mb-6 border-b border-gray-200 pb-6">
               <h1 className="text-4xl md:text-5xl font-serif text-parosa-dark mb-4 leading-tight">
                 {product.name}
@@ -123,12 +130,11 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Description */}
             <p className="text-gray-600 leading-relaxed mb-8 text-sm md:text-base">
-              {product.description || "Experience the authentic taste of tradition. Sourced directly from our partner farms and processed using traditional methods to retain 100% nutrition."}
+              {product.description || "Experience the authentic taste of tradition. Sourced directly from our partner farms and processed using traditional methods."}
             </p>
 
-            {/* Variant Selector (Dynamic from DB) */}
+            {/* Variant Selector */}
             {product.variants && product.variants.length > 0 && (
               <div className="mb-8">
                 <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 block mb-3">
@@ -152,18 +158,16 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Quantity & Add to Cart */}
+            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              {/* Qty Counter */}
               <div className="flex items-center border border-gray-300 bg-white w-32 h-14">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-full hover:bg-gray-100 text-gray-600 font-bold text-lg">-</button>
                   <span className="flex-1 text-center font-bold text-parosa-dark">{qty}</span>
                   <button onClick={() => setQty(qty + 1)} className="w-10 h-full hover:bg-gray-100 text-gray-600 font-bold text-lg">+</button>
               </div>
 
-              {/* Add Button */}
               <button 
-                onClick={addToCartHandler}
+                onClick={handleAddToCart}
                 disabled={product.countInStock === 0}
                 className="flex-1 bg-parosa-dark text-white h-14 uppercase tracking-widest font-bold text-xs flex items-center justify-center gap-3 hover:bg-gray-900 transition-all active:scale-[0.98] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -172,24 +176,18 @@ const ProductDetails = () => {
               </button>
             </div>
 
-            {/* Benefits / Trust Icons */}
+            {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 pt-8 border-t border-gray-200">
               <div className="flex flex-col items-center text-center gap-2 group">
-                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
-                  <ShieldCheck size={20} className="text-green-700" />
-                </div>
+                <ShieldCheck size={20} className="text-green-700" />
                 <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">100% Pure</span>
               </div>
               <div className="flex flex-col items-center text-center gap-2 group">
-                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
-                  <Truck size={20} className="text-blue-700" />
-                </div>
+                <Truck size={20} className="text-blue-700" />
                 <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">Fast Delivery</span>
               </div>
               <div className="flex flex-col items-center text-center gap-2 group">
-                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
-                  <RotateCcw size={20} className="text-orange-700" />
-                </div>
+                <RotateCcw size={20} className="text-orange-700" />
                 <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">Easy Returns</span>
               </div>
             </div>
