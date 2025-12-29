@@ -47,7 +47,7 @@ const Footer = () => {
           <div>
             <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-gray-200">Support</h3>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/privacypolicy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
@@ -68,7 +68,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={16} />
-                <span>support@parosa.com</span>
+                <span>contact@parosa.co.in</span>
               </div>
             </div>
 

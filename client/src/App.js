@@ -15,6 +15,8 @@ import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
+import ProductDetails from './pages/ProductDetails'
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'; 
@@ -48,6 +50,8 @@ function App() {
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/privacypolicy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/product/:slug" element={<ProductDetails />} />
               </Routes>
             </main>
 
