@@ -1,211 +1,200 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Tag } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Truck, RotateCcw, ArrowLeft } from 'lucide-react';
 
 const ProductDetails = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
 
+  // State
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // State for user selections
+  
+  // Selection State
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [qty, setQty] = useState(1);
 
-  // Fetch Product Data
+  // 1. Fetch Data from Backend
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        // Note: Make sure port matches your server
-        const { data } = await axios.get(`http://localhost:5000/api/products/${slug}`);
+        // Uses the Environment Variable or falls back to localhost for dev
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const { data } = await axios.get(`${apiUrl}/api/products/${slug}`);
+        
         setProduct(data);
         
-        // Auto-select the first variant (smallest size)
+        // Auto-select the first variant if available
         if (data.variants && data.variants.length > 0) {
           setSelectedVariant(data.variants[0]);
         }
         setLoading(false);
       } catch (err) {
-        setError(err.response && err.response.data.message ? err.response.data.message : err.message);
+        console.error("Fetch error:", err);
+        setError("Product not found");
         setLoading(false);
       }
     };
     fetchProduct();
   }, [slug]);
 
+  // 2. Handle Add to Cart
   const addToCartHandler = () => {
-    // Navigate to Cart with Query Params
-    navigate(`/cart/${product._id}?qty=${qty}&variant=${selectedVariant.weight}`);
+    // This sends the data to your Cart page via the URL
+    // If you have a specific size selected, we pass that info
+    const variantInfo = selectedVariant ? `&variant=${selectedVariant.weight}` : '';
+    navigate(`/cart/${product._id}?qty=${qty}${variantInfo}`);
   };
 
+  // Loading State
   if (loading) return (
-    <div className="flex justify-center items-center h-screen text-parosa-dark font-serif text-xl">
-      Loading Product...
+    <div className="min-h-screen flex items-center justify-center bg-parosa-bg">
+      <div className="animate-pulse text-parosa-dark font-serif text-xl">Loading pure goodness...</div>
     </div>
   );
 
-  if (error) return (
-    <div className="flex justify-center items-center h-screen text-red-600">
-      Product Not Found
-    </div>
-  );
-
-  if (!product) return null;
-
-  // Calculate Discount %
-  const discount = selectedVariant 
-    ? Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)
-    : 0;
-
-  return (
-    <div className="bg-white min-h-screen pb-20 pt-20"> {/* pt-20 added for Navbar spacing */}
-      
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4">
-        <Link to="/shop" className="inline-flex items-center text-gray-500 hover:text-parosa-dark transition-colors text-sm font-medium">
-          <ArrowLeft size={16} className="mr-2" /> Back to Shop
-        </Link>
+  // Error State
+  if (error || !product) return (
+    <div className="min-h-screen flex items-center justify-center bg-parosa-bg">
+      <div className="text-center">
+        <h2 className="text-2xl font-serif text-parosa-dark mb-4">Product Not Found</h2>
+        <Link to="/shop" className="text-sm underline hover:text-parosa-accent">Return to Shop</Link>
       </div>
+    </div>
+  );
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+  // Calculate Discount if variant exists
+  const currentPrice = selectedVariant ? selectedVariant.price : product.price;
+  const originalPrice = selectedVariant ? selectedVariant.originalPrice : product.originalPrice; // Assuming you might add this to DB later
+  
+  return (
+    <div className="bg-parosa-bg min-h-screen pb-20 pt-24 md:pt-32">
+      <div className="max-w-7xl mx-auto px-6">
         
-        {/* LEFT COLUMN: Product Image */}
-        <div className="relative group">
-          <div className="aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm relative shadow-sm border border-gray-100">
-             <img 
-               src={product.image} 
-               alt={product.name} 
-               className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-             />
-             {/* Tag Overlay */}
-             {product.tag && (
-               <div className="absolute top-4 left-4 bg-parosa-accent text-white text-xs font-bold px-3 py-1 uppercase tracking-wider shadow-md">
-                 {product.tag}
-               </div>
-             )}
-          </div>
-        </div>
+        {/* Breadcrumbs */}
+        <nav className="flex flex-wrap gap-2 text-[10px] uppercase tracking-widest text-gray-500 mb-10 font-medium">
+          <Link to="/" className="hover:text-parosa-dark transition-colors">Home</Link> / 
+          <Link to="/shop" className="hover:text-parosa-dark transition-colors">{product.category || 'Shop'}</Link> / 
+          <span className="text-parosa-dark font-bold">{product.name}</span>
+        </nav>
 
-        {/* RIGHT COLUMN: Product Details */}
-        <div className="flex flex-col justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
           
-          {/* Header Info */}
-          <div className="mb-6">
-            <span className="text-sm text-gray-500 uppercase tracking-widest font-bold">{product.category}</span>
-            <h1 className="text-3xl md:text-5xl font-serif text-parosa-dark mt-3 mb-4 leading-tight">
-              {product.name}
-            </h1>
-            
-            {/* Price Block */}
-            <div className="flex items-end gap-3 mt-4">
-              <span className="text-4xl font-bold text-gray-900 font-serif">
-                ₹{selectedVariant ? selectedVariant.price : product.price}
-              </span>
-              {selectedVariant && selectedVariant.originalPrice > selectedVariant.price && (
-                <>
-                  <span className="text-xl text-gray-400 line-through decoration-1 mb-1">
-                    ₹{selectedVariant.originalPrice}
-                  </span>
-                  <span className="text-green-700 text-sm font-bold bg-green-100 px-2 py-1 rounded mb-2">
-                    {discount}% OFF
-                  </span>
-                </>
+          {/* LEFT: Image Section */}
+          <div className="relative group">
+            <div className="aspect-square bg-white border border-gray-200 p-8 flex items-center justify-center relative overflow-hidden rounded-sm shadow-sm">
+              {/* Actual Image from DB */}
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-700 ease-out" 
+              />
+              
+              {/* Tag Badge */}
+              {product.tag && (
+                <div className="absolute top-4 left-4 bg-red-700 text-white text-[10px] px-3 py-1.5 font-bold uppercase tracking-widest shadow-md">
+                  {product.tag}
+                </div>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
           </div>
 
-          {/* Description */}
-          <p className="text-gray-600 leading-relaxed mb-6 border-b border-gray-100 pb-6 text-base">
-            {product.description}
-          </p>
-
-          {/* Benefits Bullet Points */}
-          <div className="flex flex-wrap gap-3 mb-8 text-sm text-gray-700">
-            {product.benefits && product.benefits.split('•').map((benefit, index) => (
-               <div key={index} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-sm border border-gray-200">
-                 <ShieldCheck size={16} className="text-parosa-accent" />
-                 <span className="font-medium">{benefit.trim()}</span>
-               </div>
-            ))}
-          </div>
-
-          {/* Controls: Variants & Quantity */}
-          <div className="space-y-6 mb-8 bg-gray-50 p-6 rounded-sm border border-gray-100">
+          {/* RIGHT: Info Section */}
+          <div className="flex flex-col justify-center">
             
-            {/* Variant Selector */}
+            {/* Title & Price */}
+            <div className="mb-6 border-b border-gray-200 pb-6">
+              <h1 className="text-4xl md:text-5xl font-serif text-parosa-dark mb-4 leading-tight">
+                {product.name}
+              </h1>
+              
+              <div className="flex items-end gap-3">
+                <span className="text-3xl font-serif text-parosa-dark font-medium">
+                  ₹{currentPrice}
+                </span>
+                {originalPrice > currentPrice && (
+                  <span className="text-lg text-gray-400 line-through mb-1 decoration-1">
+                    ₹{originalPrice}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <p className="text-gray-600 leading-relaxed mb-8 text-sm md:text-base">
+              {product.description || "Experience the authentic taste of tradition. Sourced directly from our partner farms and processed using traditional methods to retain 100% nutrition."}
+            </p>
+
+            {/* Variant Selector (Dynamic from DB) */}
             {product.variants && product.variants.length > 0 && (
-              <div>
-                <span className="block text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Select Size (Net Weight)</span>
+              <div className="mb-8">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 block mb-3">
+                  Select Pack Size
+                </span>
                 <div className="flex flex-wrap gap-3">
-                  {product.variants.map((variant) => (
-                    <button
-                      key={variant.weight}
-                      onClick={() => setSelectedVariant(variant)}
-                      className={`px-6 py-3 border text-sm font-bold transition-all rounded-sm ${
-                        selectedVariant.weight === variant.weight
-                          ? 'border-parosa-dark bg-parosa-dark text-white shadow-lg transform scale-105'
-                          : 'border-gray-300 text-gray-600 hover:border-gray-500 bg-white'
+                  {product.variants.map((v) => (
+                    <button 
+                      key={v.weight}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`px-6 py-3 text-xs font-bold border transition-all rounded-sm uppercase tracking-wide ${
+                        selectedVariant && selectedVariant.weight === v.weight 
+                          ? 'bg-parosa-dark text-white border-parosa-dark shadow-md transform scale-105' 
+                          : 'bg-white border-gray-200 text-gray-500 hover:border-parosa-dark hover:text-parosa-dark'
                       }`}
                     >
-                      {variant.weight}
+                      {v.weight}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Quantity Selector */}
-            {product.countInStock > 0 ? (
-              <div>
-                 <span className="block text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Quantity</span>
-                 <div className="flex items-center w-36 border border-gray-300 bg-white rounded-sm">
-                   <button 
-                     onClick={() => setQty(Math.max(1, qty - 1))}
-                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors w-12 text-lg"
-                   >-</button>
-                   <span className="flex-1 text-center font-bold text-gray-900">{qty}</span>
-                   <button 
-                     onClick={() => setQty(Math.min(product.countInStock, qty + 1))}
-                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-black transition-colors w-12 text-lg"
-                   >+</button>
-                 </div>
+            {/* Quantity & Add to Cart */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+              {/* Qty Counter */}
+              <div className="flex items-center border border-gray-300 bg-white w-32 h-14">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-full hover:bg-gray-100 text-gray-600 font-bold text-lg">-</button>
+                  <span className="flex-1 text-center font-bold text-parosa-dark">{qty}</span>
+                  <button onClick={() => setQty(qty + 1)} className="w-10 h-full hover:bg-gray-100 text-gray-600 font-bold text-lg">+</button>
               </div>
-            ) : (
-              <div className="text-red-600 font-bold bg-red-50 p-3 border border-red-100 rounded text-center">
-                Currently Out of Stock
+
+              {/* Add Button */}
+              <button 
+                onClick={addToCartHandler}
+                disabled={product.countInStock === 0}
+                className="flex-1 bg-parosa-dark text-white h-14 uppercase tracking-widest font-bold text-xs flex items-center justify-center gap-3 hover:bg-gray-900 transition-all active:scale-[0.98] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ShoppingBag size={18} /> 
+                {product.countInStock === 0 ? "Out of Stock" : "Add to Shopping Bag"}
+              </button>
+            </div>
+
+            {/* Benefits / Trust Icons */}
+            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-gray-200">
+              <div className="flex flex-col items-center text-center gap-2 group">
+                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
+                  <ShieldCheck size={20} className="text-green-700" />
+                </div>
+                <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">100% Pure</span>
               </div>
-            )}
-          </div>
+              <div className="flex flex-col items-center text-center gap-2 group">
+                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
+                  <Truck size={20} className="text-blue-700" />
+                </div>
+                <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">Fast Delivery</span>
+              </div>
+              <div className="flex flex-col items-center text-center gap-2 group">
+                <div className="p-3 bg-white rounded-full shadow-sm group-hover:shadow-md transition-shadow">
+                  <RotateCcw size={20} className="text-orange-700" />
+                </div>
+                <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500">Easy Returns</span>
+              </div>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={addToCartHandler}
-              disabled={product.countInStock === 0}
-              className="flex-1 bg-parosa-accent hover:bg-orange-700 text-white py-4 px-8 font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xl rounded-sm text-sm md:text-base"
-            >
-              <ShoppingBag size={20} />
-              Add to Cart
-            </button>
           </div>
-
-          {/* Trust Badges */}
-          <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-500 font-medium uppercase tracking-wide">
-             <div className="flex items-center gap-3">
-               <Truck size={20} className="text-parosa-dark" />
-               <span>Fast Delivery across Punjab & Rajasthan</span>
-             </div>
-             <div className="flex items-center gap-3">
-               <Tag size={20} className="text-parosa-dark" />
-               <span>100% Authentic & Natural</span>
-             </div>
-          </div>
-
         </div>
       </div>
     </div>
