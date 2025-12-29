@@ -1,16 +1,27 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true }, // <--- Added Phone
-  password: { type: String, required: true },
+  name: { type: String },
+  email: { 
+    type: String, 
+    unique: true, 
+    sparse: true // Allows multiple null values (for phone-only users)
+  },
+  phone: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  }, 
+  password: { type: String }, // Optional if logging in via OTP
   isAdmin: { type: Boolean, default: false },
   
-  // OTP Verification Fields
+  // Verification Flags
+  isEmailVerified: { type: Boolean, default: false },
+  isPhoneVerified: { type: Boolean, default: false },
+
+  // OTP Storage
   otp: { type: String },
-  otpExpires: { type: Date },
-  isVerified: { type: Boolean, default: false } 
+  otpExpires: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

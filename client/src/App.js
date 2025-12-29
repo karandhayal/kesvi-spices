@@ -31,13 +31,18 @@ axios.defaults.baseURL = "https://kesvi-spices.onrender.com";
 axios.defaults.withCredentials = true; // Important for secure cookies
 
 function App() {
+  const location = useLocation();
+
+  // Check if the current route is the admin panel
+  const isAdminRoute = location.pathname === '/admin';
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
           <div className="min-h-screen bg-kesvi-bg font-sans selection:bg-kesvi-accent selection:text-white">
             
-            <Navbar />
+            {/* Only show Navbar if NOT on admin page */}
+            {!isAdminRoute && <Navbar />}
 
             <main>
               <Routes>
@@ -55,7 +60,8 @@ function App() {
               </Routes>
             </main>
 
-            <Footer />
+            {/* Only show Footer if NOT on admin page */}
+            {!isAdminRoute && <Footer />}
           </div>
         </Router>
       </CartProvider>

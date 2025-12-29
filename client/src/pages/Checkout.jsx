@@ -3,55 +3,99 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, CreditCard, Banknote, Tag, ArrowRight, Loader } from 'lucide-react';
+import { MapPin, CreditCard, Banknote, Tag, ArrowRight, Loader, Phone, CheckCircle, Lock } from 'lucide-react';
 
 const Checkout = () => {
   const { cartItems, cartTotal, loading: cartLoading } = useCart();
-  const { user } = useAuth();
+  const { user, login } = useAuth(); // login function from context to update state
   const navigate = useNavigate();
 
-  // --- STATE MANAGEMENT ---
+  // --- STATE ---
   const [formData, setFormData] = useState({
-    fullName: user?.name || '',
-    phone: '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: ''
+    fullName: '', phone: '', email: '', 
+    street: '', city: '', state: '', pincode: ''
   });
 
-  const [paymentMethod, setPaymentMethod] = useState('UPI'); // Default to UPI
+  // Auth/Verification State
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Payment/Order State
+  const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [couponMessage, setCouponMessage] = useState('');
 
-  // --- SETTINGS ---
-  const SHIPPING_FEE = cartTotal > 499 ? 0 : 50; 
-  const UPI_DISCOUNT_PERCENT = 5; 
+  // --- 1. AUTO-FILL USER DATA ---
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.name || '',
+        email: user.email || '',
+        phone: user.phone || ''
+      }));
+      // If user is logged in, check if their phone is verified in DB
+      if (user.isPhoneVerified) {
+        setIsPhoneVerified(true);
+      }
+    }
+  }, [user]);
 
-  const upiDiscountAmount = paymentMethod === 'UPI' 
-    ? Math.floor(cartTotal * (UPI_DISCOUNT_PERCENT / 100)) 
-    : 0;
-
-  const finalTotal = cartTotal + SHIPPING_FEE - discount - upiDiscountAmount;
-
-  // --- HANDLERS ---
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // --- 2. PHONE VERIFICATION HANDLERS ---
+  const handleSendOtp = async () => {
+    if (!formData.phone || formData.phone.length < 10) return alert("Enter valid phone number");
+    setAuthLoading(true);
+    try {
+      const res = await axios.post('/api/auth/send-mobile-otp', { phone: formData.phone });
+      if (res.data.success) {
+        setOtpSent(true);
+        alert("OTP sent to WhatsApp!");
+      }
+    } catch (err) {
+      alert("Error sending OTP. Ensure number is on WhatsApp.");
+    } finally {
+      setAuthLoading(false);
+    }
   };
+
+  const handleVerifyOtp = async () => {
+    setAuthLoading(true);
+    try {
+      // Auto-Register / Login logic
+      const res = await axios.post('/api/auth/verify-mobile-otp', {
+        phone: formData.phone,
+        otp: otp,
+        name: formData.fullName, // Pass these to save profile immediately
+        email: formData.email
+      });
+
+      if (res.data.success) {
+        // CRITICAL: Log them in automatically
+        login(res.data); 
+        setIsPhoneVerified(true);
+        setOtpSent(false);
+        alert("Phone Verified! You are now logged in.");
+      }
+    } catch (err) {
+      alert("Invalid OTP");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // --- 3. ORDER HANDLERS ---
+  const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
     setCouponMessage("Checking...");
     try {
-      // CHANGED: Removed localhost
-      const res = await axios.post('/api/orders/validate-coupon', {
-        code: couponCode,
-        cartTotal
-      });
-      
+      const res = await axios.post('/api/orders/validate-coupon', { code: couponCode, cartTotal });
       if (res.data.success) {
         setDiscount(res.data.discount);
         setAppliedCoupon(res.data.code);
@@ -66,78 +110,114 @@ const Checkout = () => {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    
+    // Security Check
+    if (!isPhoneVerified) return alert("Please verify your phone number first.");
+    
     setIsSubmitting(true);
-
-    if (!formData.street || !formData.phone || !formData.pincode) {
-      alert("Please fill in all address fields.");
-      setIsSubmitting(false);
-      return;
-    }
+    const SHIPPING_FEE = cartTotal > 499 ? 0 : 50;
+    const UPI_DISCOUNT = paymentMethod === 'UPI' ? Math.floor(cartTotal * 0.05) : 0;
+    const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
 
     try {
       const payload = {
-        userId: user?._id || localStorage.getItem("parosa_guest_id"),
+        userId: user?._id, // User is guaranteed to exist now due to verification
         address: formData,
         paymentMethod,
         couponCode: appliedCoupon,
         upiDiscount: paymentMethod === 'UPI'
       };
 
-      // CHANGED: Removed localhost
       const res = await axios.post('/api/orders/create', payload);
 
       if (res.data.success) {
-        const order = res.data.order;
-
         if (paymentMethod === 'COD') {
-          navigate('/order-success', { state: { orderId: order._id } });
+          navigate('/order-success', { state: { orderId: res.data.order._id } });
         } else {
-          try {
-            // CHANGED: Removed localhost
-            const paymentRes = await axios.post('/api/payment/initiate', {
-              orderId: order._id,
-              amount: finalTotal, 
-              userId: user?._id || "guest"
+            // ... Payment Gateway Logic ...
+            const payRes = await axios.post('/api/payment/initiate', {
+                orderId: res.data.order._id,
+                amount: finalTotal,
+                userId: user._id
             });
-        
-            if (paymentRes.data.success) {
-              window.location.href = paymentRes.data.url;
-            } else {
-              alert("Payment initiation failed. Please try COD.");
-              setIsSubmitting(false);
-            }
-          } catch (payErr) {
-            console.error("Payment Gateway Error", payErr);
-            alert("Could not connect to Payment Gateway.");
-            setIsSubmitting(false);
-          }
+            if(payRes.data.success) window.location.href = payRes.data.url;
         }
       }
     } catch (err) {
-      console.error("Order Error:", err);
-      alert("Something went wrong placing the order.");
+      console.error(err);
+      alert("Order Failed");
       setIsSubmitting(false);
     }
   };
 
-  if (cartLoading) return <div className="p-10 text-center">Loading Checkout...</div>;
+  // CALCULATION VARS
+  const SHIPPING_FEE = cartTotal > 499 ? 0 : 50; 
+  const UPI_DISCOUNT = paymentMethod === 'UPI' ? Math.floor(cartTotal * 0.05) : 0;
+  const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
+
+  if (cartLoading) return <div className="p-10 text-center">Loading...</div>;
   if (cartItems.length === 0) return <div className="p-10 text-center">Your cart is empty.</div>;
 
   return (
     <div className="min-h-screen bg-kesvi-bg pt-24 pb-12 px-4">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
         
-        {/* LEFT COLUMN: FORMS */}
+        {/* LEFT: DETAILS */}
         <div>
           <h2 className="text-2xl font-serif text-parosa-dark mb-6 flex items-center gap-2">
             <MapPin className="text-parosa-accent" /> Shipping Details
           </h2>
           
           <form id="checkout-form" onSubmit={handlePlaceOrder} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            
+            {/* PERSONAL INFO */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleInputChange} className="border p-3 rounded w-full" required />
-              <input name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} className="border p-3 rounded w-full" required />
+              <input name="email" type="email" placeholder="Email (Optional)" value={formData.email} onChange={handleInputChange} className="border p-3 rounded w-full" />
             </div>
+
+            {/* --- PHONE VERIFICATION SECTION --- */}
+            <div className={`p-4 border-2 rounded-lg transition-colors ${isPhoneVerified ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
+               <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-2">
+                 Phone Number {isPhoneVerified ? <span className="text-green-600 flex items-center"><CheckCircle size={14} className="mr-1"/> Verified</span> : <span className="text-red-500">* Verification Required</span>}
+               </label>
+               
+               <div className="flex gap-2">
+                 <input 
+                   name="phone" 
+                   value={formData.phone} 
+                   onChange={handleInputChange} 
+                   disabled={isPhoneVerified || otpSent}
+                   className="flex-1 p-3 border rounded disabled:bg-gray-200 disabled:text-gray-500" 
+                   placeholder="9876543210"
+                 />
+                 
+                 {!isPhoneVerified && !otpSent && (
+                   <button type="button" onClick={handleSendOtp} disabled={authLoading} className="bg-slate-900 text-white px-4 rounded text-xs uppercase font-bold">
+                     {authLoading ? 'Sending...' : 'Verify'}
+                   </button>
+                 )}
+               </div>
+
+               {/* OTP INPUT */}
+               {!isPhoneVerified && otpSent && (
+                 <div className="mt-3 flex gap-2 animate-in fade-in">
+                    <input 
+                      type="text" 
+                      placeholder="WhatsApp OTP" 
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="w-32 p-2 border border-slate-300 rounded text-center tracking-widest font-bold"
+                    />
+                    <button type="button" onClick={handleVerifyOtp} disabled={authLoading} className="bg-green-600 text-white px-4 rounded text-xs uppercase font-bold">
+                      {authLoading ? 'Verifying...' : 'Submit'}
+                    </button>
+                 </div>
+               )}
+               <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1"><Phone size={10}/> OTP sent via WhatsApp Business.</p>
+            </div>
+
+            {/* ADDRESS */}
             <input name="street" placeholder="Address (House No, Street)" value={formData.street} onChange={handleInputChange} className="border p-3 rounded w-full" required />
             <div className="grid grid-cols-2 gap-4">
               <input name="city" placeholder="City" value={formData.city} onChange={handleInputChange} className="border p-3 rounded w-full" required />
@@ -149,20 +229,19 @@ const Checkout = () => {
             </div>
           </form>
 
+          {/* PAYMENT METHOD */}
           <h2 className="text-2xl font-serif text-parosa-dark mt-10 mb-6 flex items-center gap-2">
             <CreditCard className="text-parosa-accent" /> Payment Method
           </h2>
-
           <div className="space-y-4">
-            <label className={`flex items-center justify-between p-4 border rounded cursor-pointer transition-all ${paymentMethod === 'UPI' ? 'border-parosa-accent bg-green-50' : 'border-gray-200'}`}>
+            <label className={`flex items-center justify-between p-4 border rounded cursor-pointer ${paymentMethod === 'UPI' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
               <div className="flex items-center gap-3">
                 <input type="radio" name="payment" value="UPI" checked={paymentMethod === 'UPI'} onChange={() => setPaymentMethod('UPI')} />
-                <span className="font-medium">Pay via UPI / Cards</span>
+                <span className="font-medium">UPI / Online</span>
               </div>
               <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded font-bold">Save 5%</span>
             </label>
-
-            <label className={`flex items-center justify-between p-4 border rounded cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-parosa-accent bg-gray-50' : 'border-gray-200'}`}>
+            <label className={`flex items-center justify-between p-4 border rounded cursor-pointer ${paymentMethod === 'COD' ? 'border-slate-500 bg-gray-50' : 'border-gray-200'}`}>
               <div className="flex items-center gap-3">
                 <input type="radio" name="payment" value="COD" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} />
                 <span className="font-medium">Cash on Delivery</span>
@@ -172,7 +251,7 @@ const Checkout = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: SUMMARY */}
+        {/* RIGHT: SUMMARY */}
         <div className="bg-white p-8 shadow-md border border-gray-100 h-fit sticky top-24">
           <h3 className="text-xl font-serif text-parosa-dark mb-6 border-b pb-4">Order Summary</h3>
           
@@ -186,73 +265,35 @@ const Checkout = () => {
           </div>
 
           <div className="flex gap-2 mb-6">
-             <div className="relative flex-1">
-               <Tag className="absolute left-3 top-3 text-gray-400" size={16} />
-               <input 
-                 type="text" 
-                 placeholder="Coupon Code" 
-                 className="border pl-10 p-2 w-full rounded text-sm uppercase"
-                 value={couponCode}
-                 onChange={(e) => setCouponCode(e.target.value)}
-               />
-             </div>
-             <button 
-               type="button"
-               onClick={handleApplyCoupon}
-               className="bg-gray-800 text-white px-4 py-2 text-xs uppercase font-bold hover:bg-black"
-             >
-               Apply
-             </button>
+              <div className="relative flex-1">
+                <Tag className="absolute left-3 top-3 text-gray-400" size={16} />
+                <input type="text" placeholder="Coupon Code" className="border pl-10 p-2 w-full rounded text-sm uppercase" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} />
+              </div>
+              <button type="button" onClick={handleApplyCoupon} className="bg-gray-800 text-white px-4 py-2 text-xs uppercase font-bold">Apply</button>
           </div>
           {couponMessage && <p className="text-xs text-center mb-4 font-medium">{couponMessage}</p>}
 
           <div className="space-y-2 border-t pt-4 text-sm text-gray-600">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₹{cartTotal}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              {SHIPPING_FEE === 0 ? <span className="text-green-600">Free</span> : <span>₹{SHIPPING_FEE}</span>}
-            </div>
-            
-            {discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Coupon Discount</span>
-                <span>- ₹{discount}</span>
-              </div>
-            )}
-            
-            {upiDiscountAmount > 0 && (
-               <div className="flex justify-between text-green-600 font-medium">
-                 <span>Online Payment Discount (5%)</span>
-                 <span>- ₹{upiDiscountAmount}</span>
-               </div>
-            )}
-
-            <div className="flex justify-between text-xl font-serif text-parosa-dark border-t mt-4 pt-4">
-              <span>Total to Pay</span>
-              <span>₹{finalTotal}</span>
-            </div>
+            <div className="flex justify-between"><span>Subtotal</span><span>₹{cartTotal}</span></div>
+            <div className="flex justify-between"><span>Shipping</span>{SHIPPING_FEE === 0 ? <span className="text-green-600">Free</span> : <span>₹{SHIPPING_FEE}</span>}</div>
+            {discount > 0 && <div className="flex justify-between text-green-600"><span>Coupon</span><span>- ₹{discount}</span></div>}
+            {UPI_DISCOUNT > 0 && <div className="flex justify-between text-green-600"><span>Online Discount</span><span>- ₹{UPI_DISCOUNT}</span></div>}
+            <div className="flex justify-between text-xl font-serif text-parosa-dark border-t mt-4 pt-4"><span>Total</span><span>₹{finalTotal}</span></div>
           </div>
 
           <button 
             type="submit" 
             form="checkout-form"
-            disabled={isSubmitting}
-            className="w-full bg-parosa-dark text-white py-4 mt-8 flex items-center justify-center gap-2 uppercase tracking-widest text-xs font-bold hover:bg-parosa-accent transition-colors disabled:bg-gray-400"
+            disabled={isSubmitting || !isPhoneVerified} // BLOCKED IF NOT VERIFIED
+            className={`w-full py-4 mt-8 flex items-center justify-center gap-2 uppercase tracking-widest text-xs font-bold transition-colors ${!isPhoneVerified ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-parosa-dark text-white hover:bg-parosa-accent'}`}
           >
             {isSubmitting ? <Loader className="animate-spin" /> : (
-              <>
-                {paymentMethod === 'COD' ? 'Place COD Order' : 'Proceed to Pay'} <ArrowRight size={16} />
-              </>
+               <>
+                 {!isPhoneVerified ? 'Verify Phone First' : (paymentMethod === 'COD' ? 'Place COD Order' : 'Proceed to Pay')} 
+                 {isPhoneVerified ? <ArrowRight size={16} /> : <Lock size={16} />}
+               </>
             )}
           </button>
-          
-          <div className="mt-4 flex justify-center gap-2 opacity-50">
-             <span className="text-xs text-gray-400">Secure Payments via PhonePe</span>
-          </div>
-
         </div>
       </div>
     </div>
