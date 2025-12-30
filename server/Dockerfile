@@ -1,5 +1,5 @@
-# 1. Use an official Node.js runtime as a parent image
-FROM node:18-alpine
+# 1. Use Node 20 (Required by Mongoose v9+)
+FROM node:20-alpine
 
 # 2. Set the working directory inside the container
 WORKDIR /app
@@ -13,9 +13,10 @@ RUN npm install --production
 # 5. Copy the rest of the server code
 COPY . .
 
-# 6. Expose the port the app runs on (Google uses 8080 by default, but respects env)
+# 6. Expose the port (Cloud Run sets PORT env var automatically)
 EXPOSE 8080
 
 # 7. Define the command to run your app
-CMD ["node", "index.js"] 
-# Note: If your main file is server.js, change "index.js" to "server.js"
+# IMPORTANT: Ensure your main file is actually named "index.js".
+# If your main file is "server.js", change "index.js" to "server.js" below.
+CMD ["node", "index.js"]
