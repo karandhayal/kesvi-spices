@@ -23,3 +23,8 @@ app.use(cors({
 
 // ✅ REQUIRED FOR CLOUD RUN + BROWSERS
 app.options('*', cors());
+app.get("/debug/products", async (req, res) => {
+  const Product = require("./models/Product");
+  const products = await Product.find({});
+  res.json({ count: products.length, products });
+});
