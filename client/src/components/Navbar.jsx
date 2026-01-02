@@ -32,7 +32,7 @@ const Navbar = () => {
     { name: 'Shop All', path: '/shop' },
     { name: 'Wheat Flour', path: '/shop?cat=flour' },
     { name: 'Spices', path: '/shop?cat=spices' },
-    { name: 'Our Story', path: '/purity' },
+    { name: 'Our Story', path: '/about' },
   ];
 
   return (

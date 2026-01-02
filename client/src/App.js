@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import ProductDetails from './pages/ProductDetails';
+import About from '.pages/About';
 
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
@@ -59,6 +60,7 @@ const AppContent = () => {
           <Route path="/privacypolicy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/product/:slug" element={<ProductDetails />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </main>
 
