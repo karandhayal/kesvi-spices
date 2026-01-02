@@ -57,7 +57,10 @@ const Shop = () => {
         <p className="text-[10px] uppercase tracking-[0.4em] text-parosa-accent font-bold">Uncompromising Quality Staples</p>
       </header>
 
-      {/* STICKY FILTER BAR */}
+      {/* ======================================================
+         🔥 STICKY FILTER BAR (TEMPORARILY HIDDEN)
+      ======================================================
+      
       <div className="sticky top-[72px] md:top-[88px] z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 md:px-12 py-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex gap-6 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
@@ -88,6 +91,7 @@ const Shop = () => {
           </div>
         </div>
       </div>
+      */}
 
       <main className="max-w-7xl mx-auto px-4 md:px-12 py-12">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-10">
@@ -102,7 +106,7 @@ const Shop = () => {
 
         {processedProducts.length === 0 && (
           <div className="py-24 text-center">
-            <p className="font-serif text-gray-400 italic">No products found in this category.</p>
+            <p className="font-serif text-gray-400 italic">No products found.</p>
           </div>
         )}
       </main>
