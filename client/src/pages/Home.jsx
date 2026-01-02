@@ -35,7 +35,7 @@ const Home = () => {
       
       {/* --- RAJASTHANI BACKGROUND PATTERN --- */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" 
-           style={{ backgroundImage: `url("/mustardfield.png")` }}>
+           style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
       </div>
 
       {/* 1. HERO SECTION - HEIGHT ADJUSTED FOR MOBILE */}
@@ -43,7 +43,7 @@ const Home = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1472141521881-95d0e87e2e39?q=80&w=2072&auto=format&fit=crop" 
+            src="/mustardfield.png" 
             alt="Rajasthan Fields" 
             className="w-full h-full object-cover opacity-100"
           />

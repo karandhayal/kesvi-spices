@@ -30,7 +30,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Shop All', path: '/shop' },
-    { name: 'Wheat Flour', path: '/shop?cat=flour' },
+    { name: 'Distributor', path: '/distributor' },
     { name: 'Spices', path: '/shop?cat=spices' },
     { name: 'Our Story', path: '/about' },
   ];
@@ -163,8 +163,8 @@ const Navbar = () => {
           
           <div className="mt-10 space-y-4">
             <p className="text-[10px] uppercase tracking-widest text-gray-400">Customer Support</p>
-            <p className="text-sm text-parosa-dark font-bold">+91 98XXX XXXXX</p>
-            <p className="text-sm text-parosa-dark font-bold">care@parosa.com</p>
+            <p className="text-sm text-parosa-dark font-bold">+91 9587708808</p>
+            <p className="text-sm text-parosa-dark font-bold">contact@parosa.co.in</p>
           </div>
         </div>
       </div>
