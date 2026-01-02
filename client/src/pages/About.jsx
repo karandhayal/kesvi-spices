@@ -104,7 +104,7 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800">
               <img 
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop" 
+                src="/mustardoilmill.jpeg" 
                 alt="Slow Milling Machinery" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100"
               />
@@ -116,7 +116,7 @@ const About = () => {
 
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800">
               <img 
-                src="https://plus.unsplash.com/premium_photo-1661962489843-21c641d4c229?q=80&w=2070&auto=format&fit=crop" 
+                src="/packingmachine.png" 
                 alt="Packaging Unit" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100"
               />
@@ -128,7 +128,7 @@ const About = () => {
 
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800 md:col-span-2 lg:col-span-1">
               <img 
-                src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=2070&auto=format&fit=crop" 
+                src="/mustardlab.jpeg" 
                 alt="Quality Testing" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100"
               />
