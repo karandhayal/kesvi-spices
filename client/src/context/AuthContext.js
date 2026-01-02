@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+      const res = await axios.post("https://parosa-755646660410.asia-south2.run.app/api/auth/login", { email, password });
       setUser(res.data);
       localStorage.setItem("parosa_user", JSON.stringify(res.data));
       localStorage.setItem("parosa_user_id", res.data._id);
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, phone, password) => {
     try {
-      await axios.post("http://localhost:5000/api/auth/register", { name, email, phone, password });
+      await axios.post("https://parosa-755646660410.asia-south2.run.app/api/auth/register", { name, email, phone, password });
       return { success: true };
     } catch (error) {
       return { success: false, message: getErrorMessage(error) }; // <--- Use Helper
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (email, otp) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/verify", { email, otp });
+      const res = await axios.post("https://parosa-755646660410.asia-south2.run.app/api/auth/verify", { email, otp });
       setUser(res.data);
       localStorage.setItem("parosa_user", JSON.stringify(res.data));
       localStorage.setItem("parosa_user_id", res.data._id);

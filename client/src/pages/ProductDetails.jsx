@@ -23,7 +23,7 @@ const ProductDetails = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const apiUrl = process.env.REACT_APP_API_URL || 'https://parosa-755646660410.asia-south2.run.app';
         const { data } = await axios.get(`${apiUrl}/api/products/${slug}`);
         
         setProduct(data);

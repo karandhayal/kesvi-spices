@@ -14,7 +14,7 @@ export const addToCart = async (product) => {
   const userId = getUserId();
 
   try {
-    const response = await fetch('http://localhost:5000/api/cart/add', {
+    const response = await fetch('https://parosa-755646660410.asia-south2.run.app/api/cart/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
