@@ -152,7 +152,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="https://drive.google.com/file/d/15orAoQ12QFQ58zeqtanpQ0C9-GV0SH6k/view?usp=sharing" 
+                src="/vikas.jpg" 
                 alt="Vikas Dhayal" 
                 className="w-full h-full object-cover"
               />
@@ -169,7 +169,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="https://drive.google.com/file/d/1uRxnj-0wshB5vVEWWAUyf47kE6Cb43i7/view?usp=sharing" 
+                src="/sunil.jpg" 
                 alt="Sunil Dhayal" 
                 className="w-full h-full object-cover"
               />
