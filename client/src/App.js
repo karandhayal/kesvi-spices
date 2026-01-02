@@ -18,7 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import ProductDetails from './pages/ProductDetails';
-import About from '.pages/About';
+import About from './pages/About';
 
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
