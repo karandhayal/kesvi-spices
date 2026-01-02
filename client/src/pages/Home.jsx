@@ -63,7 +63,7 @@ const Home = () => {
           </h1>
           
           <p className="text-stone-200 text-xs md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 px-2 leading-relaxed font-light">
-            Bringing the golden harvest of <strong>Sri Ganganagar</strong> to your kitchen. 
+            Bringing the golden harvest of <strong>Rajasthan</strong> to your kitchen. 
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">

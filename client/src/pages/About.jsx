@@ -6,14 +6,14 @@ const About = () => {
       
       {/* --- HERO SECTION --- */}
       <div className="relative bg-amber-900 py-24 px-6 sm:px-12 lg:px-24 text-center text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1509358271058-acd22cc93898?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
+        <div className="absolute inset-0 opacity-20 bg-[url('/mustardfield.png')] bg-cover bg-center"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6 tracking-wide">
             Rooted in Soil, Driven by Trust.
           </h1>
           <p className="text-lg md:text-xl text-amber-100 font-light leading-relaxed">
             The journey of a farmer who dared to dream of a healthier India.
-            From the fields of Sri Ganganagar to households across the North.
+            From the fields to the Kitchen.
           </p>
         </div>
       </div>
@@ -161,7 +161,7 @@ const About = () => {
               <h3 className="text-xl font-bold text-gray-900">Mr. Vikas Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director & Founder</p>
               <a href="mailto:vikas@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ vikas@parosa.com
+                ✉️ parosa1482@gmail.com
               </a>
             </div>
           </div>
@@ -178,7 +178,7 @@ const About = () => {
               <h3 className="text-xl font-bold text-gray-900">Mr. Sunil Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director</p>
               <a href="mailto:sunil@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ sunil@parosa.com
+                ✉️ parosa1482@gmail.com
               </a>
             </div>
           </div>
@@ -190,7 +190,7 @@ const About = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">A Household Name</h2>
           <p className="text-gray-600 leading-relaxed">
-            Today, <strong>Parosa</strong> is a trusted household brand across the Northern regions of India. 
+            Today, <strong>Parosa</strong> is a trusted household brand across theI ndia. 
             We are continuously expanding our product categories and our operational footprint, 
             bringing the purity of the farm to more tables every day.
           </p>
