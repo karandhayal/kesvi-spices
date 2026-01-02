@@ -116,7 +116,7 @@ const products = [
     slug: "mustard-oil",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
-    image: "/products/mustard.jpg",
+    image: "/products/mustard.png",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
     price: 247,
