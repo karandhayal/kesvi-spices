@@ -27,10 +27,10 @@ app.use(
         callback(null, true);
       } else {
         console.log("Blocked by CORS:", origin);
-        callback(null, false); // ❗ never throw error here
+        callback(null, false);
       }
     },
-    credentials: true, // remove later if not using cookies
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
@@ -41,8 +41,8 @@ app.use(
   })
 );
 
-// ✅ REQUIRED for browsers + Cloud Run
-app.options("*", cors());
+// ✅ FIX: Changed "*" to "/*" to prevent crash on Cloud Run
+app.options("/*", cors());
 
 /* ================================
    2. SECURITY + BODY PARSING
