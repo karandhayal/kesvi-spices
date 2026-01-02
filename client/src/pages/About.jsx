@@ -152,7 +152,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="/vikas.jpg" 
+                src="/vikas.jpeg" 
                 alt="Vikas Dhayal" 
                 className="w-full h-full object-cover"
               />
