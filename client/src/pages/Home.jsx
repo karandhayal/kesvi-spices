@@ -35,7 +35,7 @@ const Home = () => {
       
       {/* --- RAJASTHANI BACKGROUND PATTERN --- */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" 
-           style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
+           style={{ backgroundImage: `url("/mustardfield.png")` }}>
       </div>
 
       {/* 1. HERO SECTION - HEIGHT ADJUSTED FOR MOBILE */}

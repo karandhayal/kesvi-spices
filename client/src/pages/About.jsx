@@ -6,7 +6,7 @@ const About = () => {
       
       {/* --- HERO SECTION --- */}
       <div className="relative bg-amber-900 py-24 px-6 sm:px-12 lg:px-24 text-center text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[url('/mustardfield.png')] bg-cover bg-center"></div>
+        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1509358271058-acd22cc93898?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6 tracking-wide">
             Rooted in Soil, Driven by Trust.
