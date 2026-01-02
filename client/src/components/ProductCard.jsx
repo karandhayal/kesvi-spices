@@ -6,13 +6,14 @@ import { useCart } from '../context/CartContext';
 const ProductCard = ({ product }) => {
   const { _id, slug, name, image, tag, category, variants } = product;
   
+  // ✅ FIX: Call the hook FIRST (Before any return statement)
+  const { addToCart } = useCart();
+
   // 🔥 TEMPORARY FILTER: ONLY SHOW MUSTARD OIL
-  // This hides all other products by returning "null" (nothing) if the name doesn't match.
+  // Now it is safe to return null because the hook has already run.
   if (!name || !name.toLowerCase().includes("mustard")) {
     return null;
   }
-
-  const { addToCart } = useCart();
 
   // 1. Determine Display Data (Default to first variant)
   const currentVariant = variants && variants.length > 0 ? variants[0] : null;
@@ -60,7 +61,7 @@ const ProductCard = ({ product }) => {
 
       {/* Content Area */}
       <div className="p-4 flex flex-col flex-grow">
-        {/* Category - OPTIONAL: You can comment this out if you want to hide the category name too */}
+        {/* Category */}
         <div className="text-[10px] uppercase tracking-widest text-gray-400 mb-1 font-bold">
           {category}
         </div>
