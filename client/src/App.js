@@ -29,7 +29,7 @@ import { AuthProvider } from './context/AuthContext';
 // axios.defaults.baseURL = "http://localhost:5000"; 
 
 // STEP B: Uncomment "Render URL" when pushing to GitHub/Vercel
-axios.defaults.baseURL = "https://parosa-755646660410.europe-west1.run.app"; 
+axios.defaults.baseURL = "https://parosa-755646660410.asia-south2.run.app"; 
 
 axios.defaults.withCredentials = true; 
 
