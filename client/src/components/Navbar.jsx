@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Menu, X, Search, User, LogOut } from 'lucide-react'; // Added User, LogOut
+import { ShoppingBag, Menu, X, Search, User, LogOut } from 'lucide-react'; 
 import { useCart } from '../context/CartContext'; 
-import { useAuth } from '../context/AuthContext'; // <--- Import Auth Hook
+import { useAuth } from '../context/AuthContext'; 
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,11 +10,11 @@ const Navbar = () => {
   
   // Get Context Data
   const { cartCount } = useCart(); 
-  const { user, logout } = useAuth(); // <--- Get User & Logout function
+  const { user, logout } = useAuth(); 
   
   const location = useLocation();
 
-  // 1. Handle scroll effect
+  // 1. Handle scroll effect (Keeping this for the padding/height transition)
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -36,8 +36,12 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      isScrolled || isOpen ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'
+    /* CHANGE MADE HERE: 
+       - Moved 'bg-white shadow-md' outside the ternary so it's always active.
+       - Kept the py-3 vs py-5 logic inside the ternary for the shrinking effect.
+    */
+    <nav className={`fixed w-full z-50 transition-all duration-300 bg-white shadow-md ${
+      isScrolled || isOpen ? 'py-3' : 'py-5'
     }`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
         
@@ -82,14 +86,13 @@ const Navbar = () => {
 
           {/* 2. USER AUTH SECTION (Login or Profile) */}
           {user ? (
-            // IF LOGGED IN: Show User Icon & Dropdown
             <div className="relative group cursor-pointer flex items-center gap-2">
               <User size={20} className="hover:text-parosa-accent transition-colors" />
               <span className="hidden md:block text-[10px] font-bold uppercase tracking-wider">
-                {user.name.split(' ')[0]} {/* Show First Name */}
+                {user.name.split(' ')[0]}
               </span>
 
-              {/* Dropdown Menu (Appears on Hover) */}
+              {/* Dropdown Menu */}
               <div className="absolute top-full right-0 mt-4 w-40 bg-white shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right">
                 <div className="py-2">
                   <div className="px-4 py-2 text-xs text-gray-400 border-b border-gray-50 mb-1">
@@ -105,7 +108,6 @@ const Navbar = () => {
               </div>
             </div>
           ) : (
-            // IF NOT LOGGED IN: Show Login Link
             <Link 
               to="/login" 
               className="text-[10px] uppercase font-bold tracking-widest hover:text-parosa-accent transition-colors"
@@ -118,7 +120,7 @@ const Navbar = () => {
           <Link to="/cart" className="relative hover:text-parosa-accent transition-colors">
             <ShoppingBag size={20} />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-parosa-red bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold animate-pulse">
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold animate-pulse">
                 {cartCount}
               </span>
             )}

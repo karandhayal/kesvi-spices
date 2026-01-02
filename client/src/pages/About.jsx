@@ -27,7 +27,7 @@ const About = () => {
               A Farmer's Promise
             </h3>
             <p className="text-gray-700 leading-7 mb-4">
-              The seed of <strong>Kesvi</strong> was first planted in the mind of <strong>Mr. Vikas Dhayal</strong>, a simple farmer with a complex ambition: <em>to provide a range of food products that Indian families could blindly trust.</em>
+              The seed of <strong>Parosa</strong> was first planted in the mind of <strong>Mr. Vikas Dhayal</strong>, a simple farmer with a complex ambition: <em>to provide a range of food products that Indian families could blindly trust.</em>
             </p>
             <p className="text-gray-700 leading-7 mb-4">
               For a farmer, transitioning to business was no small feat. Mr. Dhayal spent years working in grain markets, surveying crops, and studying the best machineries globally. He didn't just want to manufacture; he wanted to revolutionize quality.
@@ -37,7 +37,6 @@ const About = () => {
             </p>
           </div>
           <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
-            {/* Placeholder for Founder/Farm Image */}
             <img 
               src="https://images.unsplash.com/photo-1627920769843-23842a27a3c3?q=80&w=1974&auto=format&fit=crop" 
               alt="Farmer in Wheat Field" 
@@ -102,9 +101,7 @@ const About = () => {
             </div>
           </div>
           
-          {/* Gallery Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Image 1 */}
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800">
               <img 
                 src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop" 
@@ -117,7 +114,6 @@ const About = () => {
               </div>
             </div>
 
-            {/* Image 2 */}
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800">
               <img 
                 src="https://plus.unsplash.com/premium_photo-1661962489843-21c641d4c229?q=80&w=2070&auto=format&fit=crop" 
@@ -130,7 +126,6 @@ const About = () => {
               </div>
             </div>
 
-            {/* Image 3 */}
             <div className="relative group h-64 overflow-hidden rounded-lg bg-gray-800 md:col-span-2 lg:col-span-1">
               <img 
                 src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=2070&auto=format&fit=crop" 
@@ -150,14 +145,12 @@ const About = () => {
       <section className="py-20 px-6 lg:px-24 bg-amber-50">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h2 className="text-3xl font-serif font-bold text-gray-900">Leadership</h2>
-          <p className="text-gray-600 mt-2">The visionaries steering Kesvi forward.</p>
+          <p className="text-gray-600 mt-2">The visionaries steering Parosa forward.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
-          {/* Director 1 */}
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
-             {/* Replace src with real photo later */}
               <img 
                 src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                 alt="Vikas Dhayal" 
@@ -167,16 +160,14 @@ const About = () => {
             <div className="text-left">
               <h3 className="text-xl font-bold text-gray-900">Mr. Vikas Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director & Founder</p>
-              <a href="mailto:vikas@kesvi.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ vikas@kesvi.com
+              <a href="mailto:vikas@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
+                ✉️ vikas@parosa.com
               </a>
             </div>
           </div>
 
-          {/* Director 2 */}
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
-              {/* Replace src with real photo later */}
               <img 
                 src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                 alt="Sunil Dhayal" 
@@ -186,8 +177,8 @@ const About = () => {
             <div className="text-left">
               <h3 className="text-xl font-bold text-gray-900">Mr. Sunil Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director</p>
-              <a href="mailto:sunil@kesvi.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ sunil@kesvi.com
+              <a href="mailto:sunil@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
+                ✉️ sunil@parosa.com
               </a>
             </div>
           </div>
@@ -199,7 +190,7 @@ const About = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">A Household Name</h2>
           <p className="text-gray-600 leading-relaxed">
-            Today, Kesvi is a trusted household brand across the Northern regions of India. 
+            Today, <strong>Parosa</strong> is a trusted household brand across the Northern regions of India. 
             We are continuously expanding our product categories and our operational footprint, 
             bringing the purity of the farm to more tables every day.
           </p>
