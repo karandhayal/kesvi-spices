@@ -119,11 +119,14 @@ const products = [
     image: "/products/mustard.jpg",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 220,
-    originalPrice: 280,
+    price: 247,
+    originalPrice: 347,
     countInStock: 30,
     variants: [
-      { weight: "1L", price: 220, originalPrice: 280 },
+      { weight: "1L", price: 247, originalPrice: 347 },
+      { weight: "200ML", price: 82, originalPrice: 150 },
+      { weight: "500ML", price: 147, originalPrice: 290 },
+      { weight: "2L", price: 394, originalPrice: 500 },
       { weight: "5L", price: 1050, originalPrice: 1400 }
     ]
   },
