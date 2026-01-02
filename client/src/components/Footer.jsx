@@ -49,7 +49,6 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-400">
               <li><Link to="/privacypolicy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
               <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
             </ul>
           </div>
@@ -60,11 +59,11 @@ const Footer = () => {
             <div className="space-y-4 text-sm text-gray-400 mb-8">
               <div className="flex items-start gap-3">
                 <MapPin size={16} className="mt-1 flex-shrink-0" />
-                <span>Dhayal Industries,<br/>Zirakpur, Punjab - 140603</span>
+                <span>Dhayal Industries,<br/>Sri Vijaynagar, Rajasthan - 335704</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={16} />
-                <span>+91 98765 43210</span>
+                <span>+91 9587708808</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={16} />

@@ -143,9 +143,9 @@ const PrivacyPolicy = () => {
             
             <address className="not-italic bg-gray-50 p-6 rounded-sm">
               <strong className="block text-lg mb-2 text-parosa-dark">Dhayal Industries (Parosa)</strong>
-              <p className="mb-1">Zirakpur, Punjab</p>
-              <p className="mb-1">Email: <a href="mailto:support@parosa.com" className="text-blue-600 underline">support@parosa.com</a></p>
-              <p>Phone: +91 [Insert Number Here]</p>
+              <p className="mb-1">Sri Vijaynagar, Rajasthan</p>
+              <p className="mb-1">Email: <a href="mailto:support@parosa.com" className="text-blue-600 underline">contact@parosa.co.in</a></p>
+              <p>Phone: +91 9587708808</p>
             </address>
           </section>
 
