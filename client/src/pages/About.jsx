@@ -38,7 +38,7 @@ const About = () => {
           </div>
           <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
             <img 
-              src="https://images.unsplash.com/photo-1627920769843-23842a27a3c3?q=80&w=1974&auto=format&fit=crop" 
+              src="https://media.istockphoto.com/id/1130904205/photo/indian-rural-man-stock-images.jpg?s=612x612&w=0&k=20&c=FYY38IqukE0aJATU2SAW6iInNov0mcLNnCB8lfRmvmM=" 
               alt="Farmer in Wheat Field" 
               className="w-full h-full object-cover transform hover:scale-105 transition duration-700"
             />
@@ -152,7 +152,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                src="https://drive.google.com/file/d/15orAoQ12QFQ58zeqtanpQ0C9-GV0SH6k/view?usp=sharing" 
                 alt="Vikas Dhayal" 
                 className="w-full h-full object-cover"
               />
@@ -169,7 +169,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                src="https://drive.google.com/file/d/1uRxnj-0wshB5vVEWWAUyf47kE6Cb43i7/view?usp=sharing" 
                 alt="Sunil Dhayal" 
                 className="w-full h-full object-cover"
               />
