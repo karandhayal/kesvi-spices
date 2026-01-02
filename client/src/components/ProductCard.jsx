@@ -5,6 +5,13 @@ import { useCart } from '../context/CartContext';
 
 const ProductCard = ({ product }) => {
   const { _id, slug, name, image, tag, category, variants } = product;
+  
+  // 🔥 TEMPORARY FILTER: ONLY SHOW MUSTARD OIL
+  // This hides all other products by returning "null" (nothing) if the name doesn't match.
+  if (!name || !name.toLowerCase().includes("mustard")) {
+    return null;
+  }
+
   const { addToCart } = useCart();
 
   // 1. Determine Display Data (Default to first variant)
@@ -53,7 +60,7 @@ const ProductCard = ({ product }) => {
 
       {/* Content Area */}
       <div className="p-4 flex flex-col flex-grow">
-        {/* Category */}
+        {/* Category - OPTIONAL: You can comment this out if you want to hide the category name too */}
         <div className="text-[10px] uppercase tracking-widest text-gray-400 mb-1 font-bold">
           {category}
         </div>
