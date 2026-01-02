@@ -169,7 +169,7 @@ const About = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg flex items-center space-x-6">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden">
               <img 
-                src="/sunil.jpg" 
+                src="/sunil.jpeg" 
                 alt="Sunil Dhayal" 
                 className="w-full h-full object-cover"
               />
