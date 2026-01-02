@@ -41,8 +41,8 @@ app.use(
   })
 );
 
-// ✅ FIX: Changed "*" to "/*" to prevent crash on Cloud Run
-app.options("/*", cors());
+// ✅ FIX: Use Regex (/.*/) instead of string "*" to prevent Cloud Run crash
+app.options(/.*/, cors());
 
 /* ================================
    2. SECURITY + BODY PARSING
