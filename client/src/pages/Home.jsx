@@ -6,7 +6,9 @@ import ProductCard from '../components/ProductCard';
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  
+  // We can keep this state, but we will ignore it for now to force Mustard Oil view
+  const [activeCategory, setActiveCategory] = useState('All'); 
 
   // Fetch Data on Load
   useEffect(() => {
@@ -23,11 +25,14 @@ const Home = () => {
     fetchProducts();
   }, []);
   
-  // Filter Logic
-  const filteredProducts = activeCategory === 'All' 
-    ? products.slice(0, 8) // Show top 8 on home
-    : products.filter(p => p.category === activeCategory);
+  // 🔥 UPDATED FILTER LOGIC: FORCE MUSTARD OIL ONLY
+  // This ensures we only pass mustard products to the grid, matching your ProductCard logic.
+  const filteredProducts = products.filter(p => 
+    (p.category === 'Mustard Oil') || 
+    (p.name && p.name.toLowerCase().includes('mustard'))
+  );
 
+  // Kept for future use, but currently unused
   const categories = ['All', 'Wheat Flour', 'Spices', 'Mustard Oil', 'Graded Wheat', 'Animal Feed'];
 
   return (
@@ -94,7 +99,7 @@ const Home = () => {
       <section className="bg-white py-12 md:py-16 border-b border-stone-200 relative z-10">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
           {[
-            { icon: "🌾", title: "Shuddh Chakki", desc: "Stone Ground Atta" },
+            { icon: "🌾", title: "Shuddh Kachhi Ghani", desc: "From Rajasthan" },
             { icon: "☀️", title: "Rajasthan Origin", desc: "Sourced from Ganganagar" },
             { icon: "🚫", title: "Zero Chemicals", desc: "No Preservatives" },
             { icon: "🤝", title: "Farmer Connect", desc: "Direct from Source" }
@@ -110,8 +115,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. CATEGORY BAR */}
-      <section className="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-[60px] md:top-[88px] z-40 shadow-sm">
+      {/* 4. CATEGORY BAR - 🔥 TEMPORARILY HIDDEN */}
+      {/* <section className="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-[60px] md:top-[88px] z-40 shadow-sm">
         <div className="max-w-7xl mx-auto flex overflow-x-auto no-scrollbar py-3 px-6 md:justify-center gap-6 md:gap-12">
           {categories.map((cat) => (
             <button
@@ -128,13 +133,15 @@ const Home = () => {
           ))}
         </div>
       </section>
+      */}
 
       {/* 5. PRODUCT GRID */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16 relative z-10">
         <div className="mb-8 md:mb-12 text-center">
           <span className="text-amber-600 text-[10px] md:text-xs font-bold tracking-widest uppercase block mb-1">From Our Farms</span>
           <h2 className="text-2xl md:text-5xl font-serif text-stone-900 capitalize">
-            {activeCategory} <span className="italic font-light text-stone-500">Collection</span>
+            {/* Updated title since we are only showing Mustard Oil */}
+            Mustard Oil <span className="italic font-light text-stone-500">Collection</span>
           </h2>
         </div>
 

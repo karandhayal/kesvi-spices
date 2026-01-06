@@ -31,7 +31,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Shop All', path: '/shop' },
     { name: 'Distributor', path: '/distributor' },
-    { name: 'Spices', path: '/shop?cat=spices' },
+    { name: 'Mustard Oil', path: '/shop?cat=mustard-oil' },
     { name: 'Our Story', path: '/about' },
   ];
 
