@@ -113,7 +113,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 200ML",
-    slug: "mustard-oil",
+    slug: "mustard-oil-200",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard200.png",
@@ -128,7 +128,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 500ML",
-    slug: "mustard-oil",
+    slug: "mustard-oil-500",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard500.png",
@@ -143,7 +143,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 1L",
-    slug: "mustard-oil",
+    slug: "mustard-oil-1000",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard1.png",
@@ -158,7 +158,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 2L",
-    slug: "mustard-oil",
+    slug: "mustard-oil-2000",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard2.png",
@@ -173,7 +173,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 5L",
-    slug: "mustard-oil",
+    slug: "mustard-oil-5000",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard5.png",
@@ -188,7 +188,7 @@ const products = [
   },
   {
     name: "Cold Pressed Mustard Oil 15L",
-    slug: "mustard-oil",
+    slug: "mustard-oil-15l",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard15.png",
