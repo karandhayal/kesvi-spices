@@ -12,8 +12,8 @@ const SALT_INDEX = 1;
 // Use the specific "pg-sandbox" endpoint which works with PGTESTPAYUAT
 const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
-const APP_BE_URL = "http://localhost:5000"; 
-const APP_FE_URL = "http://localhost:3000"; 
+const APP_BE_URL = "https://parosa-755646660410.asia-south2.run.app"; 
+const APP_FE_URL = "https://parosa.co.in"; 
 
 // 1. INITIATE PAYMENT
 router.post('/initiate', async (req, res) => {

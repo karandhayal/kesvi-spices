@@ -112,22 +112,93 @@ const products = [
     ]
   },
   {
-    name: "Cold Pressed Mustard Oil",
+    name: "Cold Pressed Mustard Oil 200ML",
     slug: "mustard-oil",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
-    image: "/products/mustard.png",
+    image: "/products/mustard200.png",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
     price: 247,
     originalPrice: 347,
     countInStock: 30,
     variants: [
-      { weight: "1L", price: 247, originalPrice: 347 },
-      { weight: "200ML", price: 82, originalPrice: 150 },
-      { weight: "500ML", price: 147, originalPrice: 290 },
-      { weight: "2L", price: 394, originalPrice: 500 },
-      { weight: "5L", price: 1050, originalPrice: 1400 }
+      { weight: "200ML", price: 247, originalPrice: 347 }
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil 500ML",
+    slug: "mustard-oil",
+    category: "Mustard Oil",
+    tag: "Kachi Ghani",
+    image: "/products/mustard500.png",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 247,
+    originalPrice: 347,
+    countInStock: 30,
+    variants: [
+      { weight: "500ML", price: 247, originalPrice: 347 },
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil 1L",
+    slug: "mustard-oil",
+    category: "Mustard Oil",
+    tag: "Kachi Ghani",
+    image: "/products/mustard1.png",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 247,
+    originalPrice: 347,
+    countInStock: 30,
+    variants: [
+      { weight: "1L", price: 247, originalPrice: 347 }
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil 2L",
+    slug: "mustard-oil",
+    category: "Mustard Oil",
+    tag: "Kachi Ghani",
+    image: "/products/mustard2.png",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 247,
+    originalPrice: 347,
+    countInStock: 30,
+    variants: [
+      { weight: "1L", price: 247, originalPrice: 347 }
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil 5L",
+    slug: "mustard-oil",
+    category: "Mustard Oil",
+    tag: "Kachi Ghani",
+    image: "/products/mustard5.png",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 247,
+    originalPrice: 347,
+    countInStock: 30,
+    variants: [
+      { weight: "1L", price: 247, originalPrice: 347 }
+    ]
+  },
+  {
+    name: "Cold Pressed Mustard Oil 15L",
+    slug: "mustard-oil",
+    category: "Mustard Oil",
+    tag: "Kachi Ghani",
+    image: "/products/mustard15.png",
+    benefits: "Cold Pressed • High Pungency • Heart Healthy",
+    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
+    price: 247,
+    originalPrice: 347,
+    countInStock: 30,
+    variants: [
+      { weight: "15L", price: 247, originalPrice: 347 }
     ]
   },
   {
