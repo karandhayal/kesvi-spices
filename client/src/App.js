@@ -19,6 +19,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import ProductDetails from './pages/ProductDetails';
 import About from './pages/About';
+import OrderHistory from './pages/OrderHistory'; // <--- ADDED THIS
 
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
@@ -61,6 +62,7 @@ const AppContent = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/product/:slug" element={<ProductDetails />} />
           <Route path="/about" element={<About />} />
+          <Route path="/orders" element={<OrderHistory />} /> {/* <--- ADDED THIS */}
         </Routes>
       </main>
 

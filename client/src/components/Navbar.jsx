@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Menu, X, Search, User, LogOut } from 'lucide-react'; 
+import { ShoppingBag, Menu, X, Search, User, LogOut, Package } from 'lucide-react'; 
 import { useCart } from '../context/CartContext'; 
 import { useAuth } from '../context/AuthContext'; 
 
@@ -14,7 +14,7 @@ const Navbar = () => {
   
   const location = useLocation();
 
-  // 1. Handle scroll effect (Keeping this for the padding/height transition)
+  // 1. Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -36,10 +36,6 @@ const Navbar = () => {
   ];
 
   return (
-    /* CHANGE MADE HERE: 
-       - Moved 'bg-white shadow-md' outside the ternary so it's always active.
-       - Kept the py-3 vs py-5 logic inside the ternary for the shrinking effect.
-    */
     <nav className={`fixed w-full z-50 transition-all duration-300 bg-white shadow-md ${
       isScrolled || isOpen ? 'py-3' : 'py-5'
     }`}>
@@ -93,11 +89,20 @@ const Navbar = () => {
               </span>
 
               {/* Dropdown Menu */}
-              <div className="absolute top-full right-0 mt-4 w-40 bg-white shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right">
+              <div className="absolute top-full right-0 mt-4 w-48 bg-white shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right rounded-sm">
                 <div className="py-2">
                   <div className="px-4 py-2 text-xs text-gray-400 border-b border-gray-50 mb-1">
                     Signed in as <br/> <span className="font-bold text-parosa-dark">{user.email}</span>
                   </div>
+                  
+                  {/* --- NEW: Orders Link --- */}
+                  <Link 
+                    to="/orders"
+                    className="w-full text-left px-4 py-2 text-xs uppercase tracking-widest font-bold text-gray-600 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                     <Package size={12} /> My Orders
+                  </Link>
+
                   <button 
                     onClick={logout}
                     className="w-full text-left px-4 py-2 text-xs uppercase tracking-widest font-bold text-red-500 hover:bg-gray-50 flex items-center gap-2"
@@ -151,6 +156,7 @@ const Navbar = () => {
              )}
           </div>
 
+          {/* Mobile Links */}
           {navLinks.map((link) => (
             <Link 
               key={link.name} 
@@ -160,6 +166,14 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
+
+          {/* --- NEW: Mobile Order Link --- */}
+          <Link 
+            to="/orders" 
+            className="text-xl font-serif text-parosa-dark flex items-center gap-2"
+          >
+             {user ? 'My Orders' : 'Track Order'}
+          </Link>
           
           <div className="mt-10 space-y-4">
             <p className="text-[10px] uppercase tracking-widest text-gray-400">Customer Support</p>
