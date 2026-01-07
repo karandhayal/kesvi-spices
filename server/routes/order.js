@@ -6,6 +6,7 @@ const Cart = require('../models/Cart');
 // ==========================================
 // 1. ADMIN ROUTE (MUST BE AT THE TOP!)
 // ==========================================
+// Fetches all orders for the Admin Dashboard
 router.get('/all', async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -53,26 +54,39 @@ router.post('/validate-coupon', async (req, res) => {
 });
 
 // ==========================================
-// 3. CREATE ORDER (FIXED MAPPING)
+// 3. CREATE ORDER (FIXED & UPDATED)
 // ==========================================
 router.post('/create', async (req, res) => {
-  // Destructure 'shippingAddress' from frontend payload
-  const { userId, orderItems, shippingAddress, paymentMethod, couponCode, upiDiscount } = req.body;
+  // Destructure incoming data from Frontend
+  const { 
+    userId, 
+    orderItems, 
+    shippingAddress, // <--- Incoming variable name
+    paymentMethod, 
+    couponCode, 
+    upiDiscount 
+  } = req.body;
 
   try {
-    // A. Identify Products
+    // ------------------------------------------
+    // A. IDENTIFY PRODUCTS (Payload vs DB)
+    // ------------------------------------------
     let finalProducts = orderItems;
 
+    // Fallback: If no items in payload, check DB (only for logged-in users)
     if ((!finalProducts || finalProducts.length === 0) && userId) {
       const cart = await Cart.findOne({ userId });
       if (cart) finalProducts = cart.products;
     }
 
+    // If still no products, stop here.
     if (!finalProducts || finalProducts.length === 0) {
       return res.status(400).json({ success: false, message: "No items in order" });
     }
 
-    // B. Recalculate Subtotal
+    // ------------------------------------------
+    // B. RECALCULATE TOTALS (Server-Side Security)
+    // ------------------------------------------
     let subtotal = 0;
     finalProducts.forEach(item => {
       const price = Number(item.price) || 0;     
@@ -80,12 +94,15 @@ router.post('/create', async (req, res) => {
       subtotal += (price * qty);
     });
 
-    // C. Calculate Shipping
     const safeSubtotal = Number(subtotal) || 0;
+    
+    // Shipping Logic: Free if > 499, else 50
     let shippingFee = safeSubtotal > 499 ? 0 : 50; 
     let discount = 0;
 
-    // D. Apply Coupon
+    // ------------------------------------------
+    // C. APPLY COUPON
+    // ------------------------------------------
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
       if (coupon && safeSubtotal >= coupon.minOrder) {
@@ -97,23 +114,29 @@ router.post('/create', async (req, res) => {
       }
     }
 
-    // E. Apply UPI Discount
+    // ------------------------------------------
+    // D. APPLY UPI DISCOUNT
+    // ------------------------------------------
     if (paymentMethod === 'UPI' && upiDiscount) {
        const extraOff = (safeSubtotal * 0.05); 
        discount += extraOff;
     }
 
-    // F. Final Amount
+    // ------------------------------------------
+    // E. FINAL CALCULATION
+    // ------------------------------------------
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
 
-    // G. Create Order Object
+    // ------------------------------------------
+    // F. CREATE ORDER OBJECT
+    // ------------------------------------------
     const newOrder = new Order({
-      userId: userId || null, 
-      orderItems: finalProducts, 
+      userId: userId || null, // Allow NULL for Guest Checkout
       
-      // ✅ FIX: Map incoming 'shippingAddress' to schema field 'address'
+      // ✅ VITAL FIX: Map 'shippingAddress' (frontend) to 'address' (database schema)
       address: shippingAddress, 
       
+      orderItems: finalProducts,
       amount: finalAmount,      
       subtotal: safeSubtotal,
       discount: Math.floor(discount),
@@ -126,7 +149,9 @@ router.post('/create', async (req, res) => {
 
     const savedOrder = await newOrder.save();
 
-    // H. Clear Cart (Only if logged in)
+    // ------------------------------------------
+    // G. CLEANUP (Clear Cart if User Logged In)
+    // ------------------------------------------
     if (userId) {
         await Cart.findOneAndDelete({ userId }); 
     }
@@ -134,13 +159,13 @@ router.post('/create', async (req, res) => {
     res.status(200).json({ success: true, order: savedOrder });
 
   } catch (err) {
-    console.error("Order Error:", err); 
+    console.error("Order Creation Error:", err); 
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // ==========================================
-// 4. UPDATE ORDER (Admin)
+// 4. UPDATE ORDER (Admin: Status Change)
 // ==========================================
 router.put("/:id", async (req, res) => {
   try {
@@ -156,7 +181,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // ==========================================
-// 5. GET USER ORDERS (MUST BE LAST)
+// 5. GET USER ORDERS (MUST BE LAST ROUTE)
 // ==========================================
 router.get('/:userId', async (req, res) => {
   try {
