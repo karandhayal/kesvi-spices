@@ -3,11 +3,11 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, CreditCard, Banknote, Tag, ArrowRight, Loader, Phone, CheckCircle, Lock } from 'lucide-react';
+import { MapPin, CreditCard, Banknote, Tag, ArrowRight, Loader } from 'lucide-react';
 
 const Checkout = () => {
   const { cartItems, cartTotal, loading: cartLoading } = useCart();
-  const { user, login } = useAuth(); // login function from context to update state
+  const { user } = useAuth(); 
   const navigate = useNavigate();
 
   // --- STATE ---
@@ -15,12 +15,6 @@ const Checkout = () => {
     fullName: '', phone: '', email: '', 
     street: '', city: '', state: '', pincode: ''
   });
-
-  // Auth/Verification State
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
 
   // Payment/Order State
   const [paymentMethod, setPaymentMethod] = useState('UPI');
@@ -37,58 +31,12 @@ const Checkout = () => {
         ...prev,
         fullName: user.name || '',
         email: user.email || '',
-        phone: user.phone || ''
+        phone: user.phone || '' // Auto-fill if available, but not mandatory to verify
       }));
-      // If user is logged in, check if their phone is verified in DB
-      if (user.isPhoneVerified) {
-        setIsPhoneVerified(true);
-      }
     }
   }, [user]);
 
-  // --- 2. PHONE VERIFICATION HANDLERS ---
-  const handleSendOtp = async () => {
-    if (!formData.phone || formData.phone.length < 10) return alert("Enter valid phone number");
-    setAuthLoading(true);
-    try {
-      const res = await axios.post('/api/auth/send-mobile-otp', { phone: formData.phone });
-      if (res.data.success) {
-        setOtpSent(true);
-        alert("OTP sent to WhatsApp!");
-      }
-    } catch (err) {
-      alert("Error sending OTP. Ensure number is on WhatsApp.");
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    setAuthLoading(true);
-    try {
-      // Auto-Register / Login logic
-      const res = await axios.post('/api/auth/verify-mobile-otp', {
-        phone: formData.phone,
-        otp: otp,
-        name: formData.fullName, // Pass these to save profile immediately
-        email: formData.email
-      });
-
-      if (res.data.success) {
-        // CRITICAL: Log them in automatically
-        login(res.data); 
-        setIsPhoneVerified(true);
-        setOtpSent(false);
-        alert("Phone Verified! You are now logged in.");
-      }
-    } catch (err) {
-      alert("Invalid OTP");
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  // --- 3. ORDER HANDLERS ---
+  // --- 2. ORDER HANDLERS ---
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleApplyCoupon = async () => {
@@ -111,17 +59,21 @@ const Checkout = () => {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     
-    // Security Check
-    if (!isPhoneVerified) return alert("Please verify your phone number first.");
+    // Basic Validation (Optional)
+    if (!formData.phone || formData.phone.length < 10) {
+      return alert("Please enter a valid phone number.");
+    }
     
     setIsSubmitting(true);
+    
+    // Recalculate totals for backend safety
     const SHIPPING_FEE = cartTotal > 499 ? 0 : 50;
     const UPI_DISCOUNT = paymentMethod === 'UPI' ? Math.floor(cartTotal * 0.05) : 0;
     const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
 
     try {
       const payload = {
-        userId: user?._id, // User is guaranteed to exist now due to verification
+        userId: user?._id || null, // Allow guest checkout if user is null
         address: formData,
         paymentMethod,
         couponCode: appliedCoupon,
@@ -138,14 +90,14 @@ const Checkout = () => {
             const payRes = await axios.post('/api/payment/initiate', {
                 orderId: res.data.order._id,
                 amount: finalTotal,
-                userId: user._id
+                userId: user?._id
             });
             if(payRes.data.success) window.location.href = payRes.data.url;
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Order Failed");
+      alert("Order Failed: " + (err.response?.data?.message || "Server Error"));
       setIsSubmitting(false);
     }
   };
@@ -176,45 +128,18 @@ const Checkout = () => {
               <input name="email" type="email" placeholder="Email (Optional)" value={formData.email} onChange={handleInputChange} className="border p-3 rounded w-full" />
             </div>
 
-            {/* --- PHONE VERIFICATION SECTION --- */}
-            <div className={`p-4 border-2 rounded-lg transition-colors ${isPhoneVerified ? 'border-green-500 bg-green-50' : 'border-orange-200 bg-orange-50'}`}>
-               <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-2">
-                 Phone Number {isPhoneVerified ? <span className="text-green-600 flex items-center"><CheckCircle size={14} className="mr-1"/> Verified</span> : <span className="text-red-500">* Verification Required</span>}
-               </label>
-               
-               <div className="flex gap-2">
-                 <input 
-                   name="phone" 
-                   value={formData.phone} 
-                   onChange={handleInputChange} 
-                   disabled={isPhoneVerified || otpSent}
-                   className="flex-1 p-3 border rounded disabled:bg-gray-200 disabled:text-gray-500" 
-                   placeholder="9876543210"
-                 />
-                 
-                 {!isPhoneVerified && !otpSent && (
-                   <button type="button" onClick={handleSendOtp} disabled={authLoading} className="bg-slate-900 text-white px-4 rounded text-xs uppercase font-bold">
-                     {authLoading ? 'Sending...' : 'Verify'}
-                   </button>
-                 )}
-               </div>
-
-               {/* OTP INPUT */}
-               {!isPhoneVerified && otpSent && (
-                 <div className="mt-3 flex gap-2 animate-in fade-in">
-                    <input 
-                      type="text" 
-                      placeholder="WhatsApp OTP" 
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="w-32 p-2 border border-slate-300 rounded text-center tracking-widest font-bold"
-                    />
-                    <button type="button" onClick={handleVerifyOtp} disabled={authLoading} className="bg-green-600 text-white px-4 rounded text-xs uppercase font-bold">
-                      {authLoading ? 'Verifying...' : 'Submit'}
-                    </button>
-                 </div>
-               )}
-               <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1"><Phone size={10}/> OTP sent via WhatsApp Business.</p>
+            {/* --- SIMPLIFIED PHONE INPUT (NO OTP) --- */}
+            <div>
+               <input 
+                 name="phone" 
+                 type="tel"
+                 placeholder="Phone Number" 
+                 value={formData.phone} 
+                 onChange={handleInputChange} 
+                 className="border p-3 rounded w-full" 
+                 required 
+               />
+               <p className="text-[10px] text-gray-400 mt-1">We will use this to contact you for delivery.</p>
             </div>
 
             {/* ADDRESS */}
@@ -284,14 +209,14 @@ const Checkout = () => {
           <button 
             type="submit" 
             form="checkout-form"
-            disabled={isSubmitting || !isPhoneVerified} // BLOCKED IF NOT VERIFIED
-            className={`w-full py-4 mt-8 flex items-center justify-center gap-2 uppercase tracking-widest text-xs font-bold transition-colors ${!isPhoneVerified ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-parosa-dark text-white hover:bg-parosa-accent'}`}
+            disabled={isSubmitting} 
+            className={`w-full py-4 mt-8 flex items-center justify-center gap-2 uppercase tracking-widest text-xs font-bold transition-colors bg-parosa-dark text-white hover:bg-parosa-accent`}
           >
             {isSubmitting ? <Loader className="animate-spin" /> : (
-               <>
-                 {!isPhoneVerified ? 'Verify Phone First' : (paymentMethod === 'COD' ? 'Place COD Order' : 'Proceed to Pay')} 
-                 {isPhoneVerified ? <ArrowRight size={16} /> : <Lock size={16} />}
-               </>
+              <>
+                {paymentMethod === 'COD' ? 'Place COD Order' : 'Proceed to Pay'} 
+                <ArrowRight size={16} />
+              </>
             )}
           </button>
         </div>
