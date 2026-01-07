@@ -53,13 +53,14 @@ router.post('/validate-coupon', async (req, res) => {
 });
 
 // ==========================================
-// 3. CREATE ORDER (FIXED FOR GUEST & FRONTEND)
+// 3. CREATE ORDER (FIXED MAPPING)
 // ==========================================
 router.post('/create', async (req, res) => {
+  // Destructure 'shippingAddress' from frontend payload
   const { userId, orderItems, shippingAddress, paymentMethod, couponCode, upiDiscount } = req.body;
 
   try {
-    // A. Identify Products (Payload first, then DB)
+    // A. Identify Products
     let finalProducts = orderItems;
 
     if ((!finalProducts || finalProducts.length === 0) && userId) {
@@ -106,11 +107,12 @@ router.post('/create', async (req, res) => {
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
 
     // G. Create Order Object
-    // Ensure your Order Model uses 'shippingAddress' and 'orderItems'
     const newOrder = new Order({
       userId: userId || null, 
       orderItems: finalProducts, 
-      shippingAddress: shippingAddress,
+      
+      // ✅ FIX: Map incoming 'shippingAddress' to schema field 'address'
+      address: shippingAddress, 
       
       amount: finalAmount,      
       subtotal: safeSubtotal,
@@ -119,7 +121,7 @@ router.post('/create', async (req, res) => {
       
       couponCode,
       paymentMethod,
-      paymentStatus: 'Pending'
+      paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Processing'
     });
 
     const savedOrder = await newOrder.save();
