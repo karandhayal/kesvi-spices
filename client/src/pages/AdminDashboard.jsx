@@ -2,17 +2,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
-  Search, Bell, Truck, CheckCircle, XCircle, Clock, 
-  ChevronRight, Save, RefreshCw, Filter, ArrowUpRight
+  Search, Truck, CheckCircle, RefreshCw, ArrowUpRight, Save
 } from 'lucide-react';
+
+// ✅ OPTIONAL: If you haven't set up a proxy, define the URL here
+const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
 
 const AdminDashboard = () => {
   // --- STATE ---
-  const [activeSection, setActiveSection] = useState('dashboard'); // dashboard | orders | inventory | analytics
+  const [activeSection, setActiveSection] = useState('dashboard'); 
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [orderTab, setOrderTab] = useState('All'); // All | Processing | Shipped | Delivered | Cancelled
+  const [orderTab, setOrderTab] = useState('All'); 
   const [searchTerm, setSearchTerm] = useState('');
 
   // --- INITIAL DATA FETCH ---
@@ -23,10 +25,10 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // specific API calls - ensure these routes exist in your backend
+      // ✅ FIXED: Added BASE_URL to ensure it hits the cloud backend
       const [ordersRes, productsRes] = await Promise.all([
-        axios.get('/api/orders/all'),
-        axios.get('/api/products') 
+        axios.get(`${BASE_URL}/orders/all`),
+        axios.get(`${BASE_URL}/products`) 
       ]);
       setOrders(ordersRes.data);
       setProducts(productsRes.data);
@@ -43,7 +45,7 @@ const AdminDashboard = () => {
   const handleShip = async (orderId) => {
     if (!window.confirm("Push this order to Shiprocket for pickup?")) return;
     try {
-      const res = await axios.post(`/api/shipping/create-order/${orderId}`);
+      const res = await axios.post(`${BASE_URL}/shipping/create-order/${orderId}`);
       if (res.data.success) {
         alert(`Success! Tracking ID: ${res.data.data.order_id}`);
         fetchData();
@@ -53,21 +55,20 @@ const AdminDashboard = () => {
     }
   };
 
-  // 2. Update Order Status Manually
+  // 2. Update Order Status
   const updateStatus = async (orderId, newStatus) => {
     try {
-      await axios.put(`/api/orders/${orderId}`, { status: newStatus });
-      // Optimistic update
+      await axios.put(`${BASE_URL}/orders/${orderId}`, { status: newStatus });
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
     } catch (err) {
       alert("Failed to update status");
     }
   };
 
-  // 3. Update Inventory Stock
+  // 3. Update Inventory
   const handleStockUpdate = async (id, newStock) => {
     try {
-      await axios.put(`/api/products/${id}`, { countInStock: newStock });
+      await axios.put(`${BASE_URL}/products/${id}`, { countInStock: newStock });
       setProducts(prev => prev.map(p => p._id === id ? { ...p, countInStock: newStock } : p));
       alert("Stock updated!");
     } catch (err) {
@@ -77,18 +78,28 @@ const AdminDashboard = () => {
 
   // --- COMPUTED DATA (ANALYTICS) ---
   const stats = useMemo(() => {
-    const totalRevenue = orders.reduce((acc, o) => acc + (o.paymentStatus === 'Paid' || o.paymentMethod === 'COD' ? o.amount : 0), 0);
+    // Safety check: ensure orders is an array
+    if (!Array.isArray(orders)) return { totalRevenue: 0, totalOrders: 0, pendingOrders: 0, lowStockItems: 0, topProducts: [] };
+
+    const totalRevenue = orders.reduce((acc, o) => acc + (o.paymentStatus === 'Paid' || o.paymentMethod === 'COD' ? (o.amount || 0) : 0), 0);
     const totalOrders = orders.length;
     const pendingOrders = orders.filter(o => o.status === 'Processing').length;
     const lowStockItems = products.filter(p => p.countInStock < 5).length;
     
     // Top Selling Products Calculation
     const productSales = {};
+    
     orders.forEach(order => {
-      order.products.forEach(item => {
-        productSales[item.title] = (productSales[item.title] || 0) + Number(item.quantity);
+      // ✅ CRITICAL FIX: Look for 'orderItems', fallback to 'products', fallback to empty array
+      const items = order.orderItems || order.products || [];
+      
+      items.forEach(item => {
+        if (item && item.title) {
+            productSales[item.title] = (productSales[item.title] || 0) + Number(item.quantity || 1);
+        }
       });
     });
+
     const topProducts = Object.entries(productSales)
       .sort(([,a], [,b]) => b - a)
       .slice(0, 5);
@@ -99,8 +110,8 @@ const AdminDashboard = () => {
   // --- FILTERED ORDERS ---
   const filteredOrders = orders.filter(order => {
     const matchesTab = orderTab === 'All' || order.status === orderTab;
-    const matchesSearch = order._id.includes(searchTerm) || 
-                          order.address?.fullName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (order._id || '').includes(searchTerm) || 
+                          (order.address?.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesTab && matchesSearch;
   });
 
@@ -216,11 +227,11 @@ const AdminDashboard = () => {
                 <div className="flex gap-2 bg-gray-100 p-1 rounded-md">
                    {['All', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(tab => (
                      <button
-                        key={tab}
-                        onClick={() => setOrderTab(tab)}
-                        className={`px-4 py-1.5 text-xs font-semibold rounded ${
-                          orderTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                       key={tab}
+                       onClick={() => setOrderTab(tab)}
+                       className={`px-4 py-1.5 text-xs font-semibold rounded ${
+                         orderTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                       }`}
                      >
                        {tab}
                      </button>
@@ -250,7 +261,11 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredOrders.map(order => (
+                    {filteredOrders.map(order => {
+                      // ✅ CRITICAL FIX: Ensure items array exists
+                      const items = order.orderItems || order.products || [];
+
+                      return (
                       <tr key={order._id} className="hover:bg-gray-50">
                         <td className="p-4">
                           <span className="font-mono font-bold text-gray-700">#{order._id.slice(-6).toUpperCase()}</span>
@@ -261,7 +276,7 @@ const AdminDashboard = () => {
                            <div className="text-xs text-gray-500">{order.address?.phone}</div>
                         </td>
                         <td className="p-4 text-xs text-gray-600 max-w-xs">
-                          {order.products.map((p, i) => (
+                          {items.map((p, i) => (
                             <div key={i}>{p.title} <span className="text-gray-400">x{p.quantity}</span></div>
                           ))}
                         </td>
@@ -302,7 +317,7 @@ const AdminDashboard = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                     {filteredOrders.length === 0 && (
                       <tr><td colSpan="5" className="p-8 text-center text-gray-400">No orders found matching filters.</td></tr>
                     )}
