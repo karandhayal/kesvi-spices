@@ -31,7 +31,7 @@ const Checkout = () => {
         ...prev,
         fullName: user.name || '',
         email: user.email || '',
-        phone: user.phone || '' // Auto-fill if available, but not mandatory to verify
+        phone: user.phone || '' 
       }));
     }
   }, [user]);
@@ -59,7 +59,7 @@ const Checkout = () => {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     
-    // Basic Validation (Optional)
+    // Basic Validation
     if (!formData.phone || formData.phone.length < 10) {
       return alert("Please enter a valid phone number.");
     }
@@ -72,9 +72,21 @@ const Checkout = () => {
     const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
 
     try {
+      // ✅ FIX: Construct the complete payload expected by the server
       const payload = {
-        userId: user?._id || null, // Allow guest checkout if user is null
-        address: formData,
+        userId: user?._id || null, // Handle Guest Checkout
+        
+        // 1. SEND THE PRODUCTS (Fixes "Cart is empty" error)
+        orderItems: cartItems, 
+        
+        // 2. SEND THE ADDRESS (Mapped to 'shippingAddress' which is standard for backend)
+        shippingAddress: formData, 
+        
+        // 3. SEND CALCULATED PRICES
+        itemsPrice: cartTotal,
+        shippingPrice: SHIPPING_FEE,
+        totalPrice: finalTotal,
+
         paymentMethod,
         couponCode: appliedCoupon,
         upiDiscount: paymentMethod === 'UPI'
@@ -97,7 +109,7 @@ const Checkout = () => {
       }
     } catch (err) {
       console.error(err);
-      alert("Order Failed: " + (err.response?.data?.message || "Server Error"));
+      alert("Order Failed: " + (err.response?.data?.message || err.message || "Server Error"));
       setIsSubmitting(false);
     }
   };
@@ -128,7 +140,7 @@ const Checkout = () => {
               <input name="email" type="email" placeholder="Email (Optional)" value={formData.email} onChange={handleInputChange} className="border p-3 rounded w-full" />
             </div>
 
-            {/* --- SIMPLIFIED PHONE INPUT (NO OTP) --- */}
+            {/* PHONE INPUT */}
             <div>
                <input 
                  name="phone" 
