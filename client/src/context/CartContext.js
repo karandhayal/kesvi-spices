@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { useAuth } from './AuthContext';
+import { useAuth, BASE_URL } from './AuthContext'; // Import BASE_URL
 
 const CartContext = createContext();
 
@@ -12,24 +12,24 @@ export const CartProvider = ({ children }) => {
   
   const { user } = useAuth(); 
 
-  const getUserId = () => {
+  // ✅ OPTIMIZED: Memoize userId to prevent calculation on every render
+  const userId = useMemo(() => {
     if (user && user._id) return user._id;
+    
     let guestId = localStorage.getItem("parosa_guest_id");
     if (!guestId) {
       guestId = "guest_" + Date.now() + Math.random().toString(36).substr(2, 9);
       localStorage.setItem("parosa_guest_id", guestId);
     }
     return guestId;
-  };
-
-  const userId = getUserId();
+  }, [user]);
 
   // --- 1. FETCH CART ---
   const fetchCart = async () => {
     if (!userId) return;
     try {
-      // CHANGED: Removed localhost
-      const res = await axios.get(`/api/cart/${userId}`);
+      // ✅ FIXED: Use BASE_URL
+      const res = await axios.get(`${BASE_URL}/cart/${userId}`);
       
       const validItems = (res.data?.products || []).filter(item => 
         item.title && item.price && item.productId
@@ -68,8 +68,8 @@ export const CartProvider = ({ children }) => {
         image: product.image || product.img
       };
 
-      // CHANGED: Removed localhost
-      await axios.post("/api/cart/add", payload);
+      // ✅ FIXED: Use BASE_URL
+      await axios.post(`${BASE_URL}/cart/add`, payload);
       await fetchCart(); 
       alert("Added to cart!");
     } catch (err) {
@@ -80,13 +80,14 @@ export const CartProvider = ({ children }) => {
 
   // --- 3. REMOVE FROM CART ---
   const removeFromCart = async (productId) => {
+    // Optimistic Update (Visual)
     setCartItems(currentItems => currentItems.filter(item => item.productId !== productId));
     try {
-      // CHANGED: Removed localhost
-      await axios.delete(`/api/cart/remove/${userId}/${productId}`);
+      // ✅ FIXED: Use BASE_URL
+      await axios.delete(`${BASE_URL}/cart/remove/${userId}/${productId}`);
     } catch (err) {
       console.error(err);
-      fetchCart();
+      fetchCart(); // Revert on error
     }
   };
 
@@ -94,6 +95,7 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = async (productId, quantity) => {
     if (quantity < 1) return;
     
+    // Optimistic Update
     setCartItems(currentItems => 
       currentItems.map(item => 
         item.productId === productId ? { ...item, quantity } : item
@@ -101,8 +103,8 @@ export const CartProvider = ({ children }) => {
     );
 
     try {
-      // CHANGED: Removed localhost
-      await axios.put("/api/cart/update", {
+      // ✅ FIXED: Use BASE_URL
+      await axios.put(`${BASE_URL}/cart/update`, {
         userId,
         productId,
         quantity

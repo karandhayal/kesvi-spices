@@ -17,7 +17,9 @@ const Checkout = () => {
   });
 
   // Payment/Order State
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
+  // 1. CHANGED DEFAULT TO 'COD' SINCE ONLINE IS HIDDEN
+  const [paymentMethod, setPaymentMethod] = useState('COD'); 
+  
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -43,6 +45,7 @@ const Checkout = () => {
     if (!couponCode) return;
     setCouponMessage("Checking...");
     try {
+      // Ensure your Axios setup has the BASE_URL or this path is correct
       const res = await axios.post('/api/orders/validate-coupon', { code: couponCode, cartTotal });
       if (res.data.success) {
         setDiscount(res.data.discount);
@@ -72,11 +75,10 @@ const Checkout = () => {
     const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
 
     try {
-      // ✅ CRITICAL FIX: Construct the correct payload
       const payload = {
         userId: user?._id || null, // Handles Guest Checkout
         
-        // 1. Send the actual products (Fixes "Cart is empty")
+        // 1. Send the actual products
         orderItems: cartItems, 
         
         // 2. Send the address structure expected by Mongoose
@@ -92,6 +94,7 @@ const Checkout = () => {
         upiDiscount: paymentMethod === 'UPI'
       };
 
+      // Ensure your Axios setup has the BASE_URL or this path is correct
       const res = await axios.post('/api/orders/create', payload);
 
       if (res.data.success) {
@@ -140,7 +143,7 @@ const Checkout = () => {
               <input name="email" type="email" placeholder="Email (Optional)" value={formData.email} onChange={handleInputChange} className="border p-3 rounded w-full" />
             </div>
 
-            {/* PHONE INPUT (Simplified, No OTP Blocking) */}
+            {/* PHONE INPUT */}
             <div>
                <input 
                  name="phone" 
@@ -171,6 +174,8 @@ const Checkout = () => {
             <CreditCard className="text-parosa-accent" /> Payment Method
           </h2>
           <div className="space-y-4">
+            
+            {/* --- TEMPORARILY HIDDEN UPI ---
             <label className={`flex items-center justify-between p-4 border rounded cursor-pointer ${paymentMethod === 'UPI' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
               <div className="flex items-center gap-3">
                 <input type="radio" name="payment" value="UPI" checked={paymentMethod === 'UPI'} onChange={() => setPaymentMethod('UPI')} />
@@ -178,6 +183,8 @@ const Checkout = () => {
               </div>
               <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded font-bold">Save 5%</span>
             </label>
+            */}
+
             <label className={`flex items-center justify-between p-4 border rounded cursor-pointer ${paymentMethod === 'COD' ? 'border-slate-500 bg-gray-50' : 'border-gray-200'}`}>
               <div className="flex items-center gap-3">
                 <input type="radio" name="payment" value="COD" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} />
@@ -214,7 +221,11 @@ const Checkout = () => {
             <div className="flex justify-between"><span>Subtotal</span><span>₹{cartTotal}</span></div>
             <div className="flex justify-between"><span>Shipping</span>{SHIPPING_FEE === 0 ? <span className="text-green-600">Free</span> : <span>₹{SHIPPING_FEE}</span>}</div>
             {discount > 0 && <div className="flex justify-between text-green-600"><span>Coupon</span><span>- ₹{discount}</span></div>}
+            
+            {/* --- TEMPORARILY HIDDEN UPI DISCOUNT ---
             {UPI_DISCOUNT > 0 && <div className="flex justify-between text-green-600"><span>Online Discount</span><span>- ₹{UPI_DISCOUNT}</span></div>}
+            */}
+
             <div className="flex justify-between text-xl font-serif text-parosa-dark border-t mt-4 pt-4"><span>Total</span><span>₹{finalTotal}</span></div>
           </div>
 
