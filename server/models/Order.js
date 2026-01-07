@@ -1,23 +1,25 @@
 const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
+  // 1. FIX: Set required to false (allows Guest Checkout)
+  userId: { type: String, required: false },
   
-  products: [
+  // 2. FIX: Rename 'products' to 'orderItems' (Matches your Route code)
+  orderItems: [
     {
       productId: { type: String },
       title: String,
       quantity: { type: Number, default: 1 },
       price: Number,
-      variant: String, // Kept your existing variant field
-      image: String    // Kept your existing image field
+      variant: String,
+      image: String
     }
   ],
 
   // --- Payment & Costs ---
-  amount: { type: Number, required: true },   // Final amount user pays
-  subtotal: { type: Number, required: true }, // Total before discount
-  discount: { type: Number, default: 0 },     // Discount applied
+  amount: { type: Number, required: true },   // Final amount
+  subtotal: { type: Number, required: true }, // Before discount
+  discount: { type: Number, default: 0 },     
   couponCode: { type: String }, 
   shippingFee: { type: Number, default: 0 },
 
@@ -29,22 +31,23 @@ const OrderSchema = new mongoose.Schema({
     city: { type: String, required: true },
     state: { type: String, required: true },
     pincode: { type: String, required: true },
-    country: { type: String, default: "India" }
+    country: { type: String, default: "India" },
+    email: { type: String } // Added email (often useful in address)
   },
   
   // --- Order Status ---
-  status: { type: String, default: "Processing" }, // Changed default to 'Processing' to match Admin panel logic
+  status: { type: String, default: "Processing" },
   
   // --- Payment Details ---
   paymentMethod: { type: String, enum: ['UPI', 'COD'], required: true },
-  paymentStatus: { type: String, default: "Pending" }, // pending, success, failed
-  transactionId: { type: String }, // PhonePe Transaction ID
+  paymentStatus: { type: String, default: "Pending" },
+  transactionId: { type: String },
 
-  // --- NEW: SHIPROCKET INTEGRATION FIELDS ---
-  shiprocketOrderId: { type: Number }, // The ID inside Shiprocket
-  shipmentId: { type: Number },        // Used to generate AWB
-  awbCode: { type: String },           // The Tracking Number
-  courierName: { type: String }        // e.g., "Delhivery", "BlueDart"
+  // --- SHIPROCKET INTEGRATION FIELDS ---
+  shiprocketOrderId: { type: Number },
+  shipmentId: { type: Number },        
+  awbCode: { type: String },           
+  courierName: { type: String }        
 
 }, { timestamps: true });
 
