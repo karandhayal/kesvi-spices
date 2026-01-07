@@ -36,7 +36,7 @@ const Checkout = () => {
     }
   }, [user]);
 
-  // --- 2. ORDER HANDLERS ---
+  // --- 2. HANDLERS ---
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleApplyCoupon = async () => {
@@ -72,17 +72,17 @@ const Checkout = () => {
     const finalTotal = cartTotal + SHIPPING_FEE - discount - UPI_DISCOUNT;
 
     try {
-      // ✅ FIX: Construct the complete payload expected by the server
+      // ✅ CRITICAL FIX: Construct the correct payload
       const payload = {
-        userId: user?._id || null, // Handle Guest Checkout
+        userId: user?._id || null, // Handles Guest Checkout
         
-        // 1. SEND THE PRODUCTS (Fixes "Cart is empty" error)
+        // 1. Send the actual products (Fixes "Cart is empty")
         orderItems: cartItems, 
         
-        // 2. SEND THE ADDRESS (Mapped to 'shippingAddress' which is standard for backend)
+        // 2. Send the address structure expected by Mongoose
         shippingAddress: formData, 
         
-        // 3. SEND CALCULATED PRICES
+        // 3. Send calculated prices
         itemsPrice: cartTotal,
         shippingPrice: SHIPPING_FEE,
         totalPrice: finalTotal,
@@ -140,7 +140,7 @@ const Checkout = () => {
               <input name="email" type="email" placeholder="Email (Optional)" value={formData.email} onChange={handleInputChange} className="border p-3 rounded w-full" />
             </div>
 
-            {/* PHONE INPUT */}
+            {/* PHONE INPUT (Simplified, No OTP Blocking) */}
             <div>
                <input 
                  name="phone" 
