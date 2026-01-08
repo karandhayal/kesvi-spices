@@ -26,25 +26,30 @@ const Home = () => {
   }, []);
   
   // 🔥 UPDATED FILTER LOGIC: FORCE MUSTARD OIL ONLY
-  // This ensures we only pass mustard products to the grid, matching your ProductCard logic.
   const filteredProducts = products.filter(p => 
     (p.category === 'Mustard Oil') || 
     (p.name && p.name.toLowerCase().includes('mustard'))
   );
 
-  // Kept for future use, but currently unused
   const categories = ['All', 'Wheat Flour', 'Spices', 'Mustard Oil', 'Graded Wheat', 'Animal Feed'];
 
   return (
-    <div className="bg-stone-50 min-h-screen font-sans selection:bg-amber-200">
+    <div className="bg-stone-50 min-h-screen font-sans selection:bg-amber-200 pt-[60px] md:pt-[80px]">
       
       {/* --- RAJASTHANI BACKGROUND PATTERN --- */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" 
            style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
       </div>
 
-      {/* 1. HERO SECTION - HEIGHT ADJUSTED FOR MOBILE */}
-      <section className="relative min-h-[65vh] md:min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-12 md:py-16 overflow-hidden">
+      {/* 🔥 NEW: OFFER STRIP (Fixed at top or just below nav depending on layout) */}
+      <div className="bg-red-700 text-white py-2 px-4 text-center relative z-50 shadow-sm">
+        <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest flex justify-center items-center gap-2">
+          🚚 Free Shipping on orders above ₹399
+        </p>
+      </div>
+
+      {/* 1. HERO SECTION */}
+      <section className="relative min-h-[60vh] md:min-h-[80vh] flex flex-col items-center justify-center text-center px-6 py-12 md:py-16 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -115,32 +120,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. CATEGORY BAR - 🔥 TEMPORARILY HIDDEN */}
-      {/* <section className="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-[60px] md:top-[88px] z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto flex overflow-x-auto no-scrollbar py-3 px-6 md:justify-center gap-6 md:gap-12">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-bold whitespace-nowrap transition-all pb-1 border-b-2 ${
-                activeCategory === cat 
-                ? 'text-amber-800 border-amber-800' 
-                : 'text-stone-400 border-transparent'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </section>
-      */}
-
       {/* 5. PRODUCT GRID */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16 relative z-10">
         <div className="mb-8 md:mb-12 text-center">
           <span className="text-amber-600 text-[10px] md:text-xs font-bold tracking-widest uppercase block mb-1">From Our Farms</span>
           <h2 className="text-2xl md:text-5xl font-serif text-stone-900 capitalize">
-            {/* Updated title since we are only showing Mustard Oil */}
             Mustard Oil <span className="italic font-light text-stone-500">Collection</span>
           </h2>
         </div>
