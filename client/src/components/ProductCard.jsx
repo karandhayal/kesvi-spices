@@ -6,20 +6,20 @@ import { useCart } from '../context/CartContext';
 const ProductCard = ({ product }) => {
   const { _id, slug, name, image, tag, category, variants } = product;
   
+  // ✅ FIX: Call the hook FIRST (Before any return statement)
   const { addToCart } = useCart();
 
   // 🔥 TEMPORARY FILTER: ONLY SHOW MUSTARD OIL
+  // Now it is safe to return null because the hook has already run.
   if (!name || !name.toLowerCase().includes("mustard")) {
     return null;
   }
 
   // 1. Determine Display Data (Default to first variant)
   const currentVariant = variants && variants.length > 0 ? variants[0] : null;
-  
   const displayPrice = currentVariant ? currentVariant.price : product.price;
   const displayOriginalPrice = currentVariant ? currentVariant.originalPrice : product.originalPrice;
-  // ✅ This ensures we get the specific weight of the first variant (e.g., "1L" or "500ml")
-  const displayWeight = currentVariant ? currentVariant.weight : ""; 
+  const displayWeight = currentVariant ? currentVariant.weight : "";
 
   // 2. Calculate Discount
   const discount = displayOriginalPrice 
@@ -28,15 +28,15 @@ const ProductCard = ({ product }) => {
 
   // 3. Handle Add to Cart
   const handleAddToCart = (e) => {
-    e.preventDefault(); 
+    e.preventDefault(); // Stop Link from opening
     e.stopPropagation();
 
     addToCart({
-      productId: _id, // ✅ CHANGED from 'id' to 'productId' to match your Cart.js
+      id: _id,
       name: name,
       price: displayPrice,
       image: image,
-      variant: displayWeight, // ✅ This sends the dynamic weight, not a hardcoded string
+      variant: displayWeight,
       quantity: 1
     });
   };
@@ -93,7 +93,7 @@ const ProductCard = ({ product }) => {
           )}
         </div>
 
-        {/* ADD TO CART BUTTON */}
+        {/* ALWAYS VISIBLE ADD TO CART BUTTON */}
         <button 
           onClick={handleAddToCart}
           className="w-full bg-parosa-dark text-white py-3 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-parosa-accent transition-colors active:scale-[0.98]"
