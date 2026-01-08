@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
-  // 1. FIX: Set required to false (allows Guest Checkout)
-  userId: { type: String, required: false },
+  // 1. User Handling
+  userId: { type: String, required: false }, // False allows Guest Checkout
   
-  // 2. FIX: Rename 'products' to 'orderItems' (Matches your Route code)
+  // 2. Order Items
   orderItems: [
     {
       productId: { type: String },
-      title: String,
+      name: String, // ✅ CHANGED: Frontend sends 'name', not 'title'
       quantity: { type: Number, default: 1 },
       price: Number,
       variant: String,
@@ -17,8 +17,8 @@ const OrderSchema = new mongoose.Schema({
   ],
 
   // --- Payment & Costs ---
-  amount: { type: Number, required: true },   // Final amount
-  subtotal: { type: Number, required: true }, // Before discount
+  amount: { type: Number, required: true },   // Final amount to pay
+  subtotal: { type: Number, required: true }, // Cart total before fees
   discount: { type: Number, default: 0 },     
   couponCode: { type: String }, 
   shippingFee: { type: Number, default: 0 },
@@ -32,7 +32,7 @@ const OrderSchema = new mongoose.Schema({
     state: { type: String, required: true },
     pincode: { type: String, required: true },
     country: { type: String, default: "India" },
-    email: { type: String } // Added email (often useful in address)
+    email: { type: String }
   },
   
   // --- Order Status ---
@@ -40,8 +40,16 @@ const OrderSchema = new mongoose.Schema({
   
   // --- Payment Details ---
   paymentMethod: { type: String, enum: ['COD', 'ONLINE', 'UPI_MANUAL'], required: true },
-  paymentStatus: { type: String, default: "Pending" },
-  transactionId: { type: String },
+  
+  // ✅ CRITICAL FIX: Match the 'orders.js' payload structure
+  paymentResult: {
+    id: String,      // Stores the UPI Transaction ID / UTR
+    status: String,  // Stores "Pending Verification"
+    email_address: String,
+    update_time: String
+  },
+
+  isPaid: { type: Boolean, default: false }, // ✅ Added to track payment status easily
 
   // --- SHIPROCKET INTEGRATION FIELDS ---
   shiprocketOrderId: { type: Number },
