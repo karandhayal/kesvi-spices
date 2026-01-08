@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { useAuth, BASE_URL } from './AuthContext'; // Import BASE_URL
+import { useAuth, BASE_URL } from './AuthContext'; 
 
 const CartContext = createContext();
 
@@ -12,7 +12,7 @@ export const CartProvider = ({ children }) => {
   
   const { user } = useAuth(); 
 
-  // ✅ OPTIMIZED: Memoize userId to prevent calculation on every render
+  // ✅ MEMOIZED USER ID (Handles Guest/User switch)
   const userId = useMemo(() => {
     if (user && user._id) return user._id;
     
@@ -28,7 +28,6 @@ export const CartProvider = ({ children }) => {
   const fetchCart = async () => {
     if (!userId) return;
     try {
-      // ✅ FIXED: Use BASE_URL
       const res = await axios.get(`${BASE_URL}/cart/${userId}`);
       
       const validItems = (res.data?.products || []).filter(item => 
@@ -48,30 +47,43 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [userId]);
 
-  // --- 2. ADD TO CART ---
-  const addToCart = async (product, quantity = 1, variant = '500g') => {
+  // --- 2. ADD TO CART (FIXED VARIANT BUG) ---
+  const addToCart = async (productData) => {
     try {
-      if (!product || (!product.name && !product.title)) {
-        console.error("Attempted to add invalid product:", product);
+      // ✅ FIX: Correctly extract data from the object sent by ProductCard/Details
+      const { 
+        productId, 
+        id, 
+        _id, 
+        name, 
+        title, 
+        price, 
+        image, 
+        img, 
+        variant, // This comes from ProductDetails (e.g., "1L")
+        quantity 
+      } = productData;
+
+      // Robust ID check
+      const finalProductId = productId || id || _id;
+      if (!finalProductId) {
+        console.error("No Product ID found in addToCart");
         return;
       }
 
-      const productId = product._id || product.id.toString(); 
-      
       const payload = {
         userId,
-        productId,
-        quantity,
-        variant,
-        title: product.name || product.title, 
-        price: Number(product.price) || 0, 
-        image: product.image || product.img
+        productId: finalProductId.toString(),
+        quantity: Number(quantity) || 1,
+        variant: variant || '500g', // Uses the variant passed in object, else default
+        title: name || title, 
+        price: Number(price) || 0, 
+        image: image || img
       };
 
-      // ✅ FIXED: Use BASE_URL
       await axios.post(`${BASE_URL}/cart/add`, payload);
       await fetchCart(); 
-      alert("Added to cart!");
+      // alert("Added to cart!"); // Optional: Remove if you use the Toast
     } catch (err) {
       console.error("Add to cart failed:", err);
       alert("Failed to add item.");
@@ -80,10 +92,9 @@ export const CartProvider = ({ children }) => {
 
   // --- 3. REMOVE FROM CART ---
   const removeFromCart = async (productId) => {
-    // Optimistic Update (Visual)
+    // Optimistic Update
     setCartItems(currentItems => currentItems.filter(item => item.productId !== productId));
     try {
-      // ✅ FIXED: Use BASE_URL
       await axios.delete(`${BASE_URL}/cart/remove/${userId}/${productId}`);
     } catch (err) {
       console.error(err);
@@ -103,7 +114,6 @@ export const CartProvider = ({ children }) => {
     );
 
     try {
-      // ✅ FIXED: Use BASE_URL
       await axios.put(`${BASE_URL}/cart/update`, {
         userId,
         productId,
@@ -115,10 +125,11 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // --- CALCULATIONS ---
   const cartCount = cartItems.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0);
   
   const cartTotal = cartItems.reduce((acc, item) => {
-     return acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0));
+      return acc + ((Number(item.price) || 0) * (Number(item.quantity) || 0));
   }, 0);
 
   return (
@@ -129,7 +140,8 @@ export const CartProvider = ({ children }) => {
       updateQuantity, 
       cartCount, 
       cartTotal, 
-      loading 
+      loading,
+      clearCart: () => setCartItems([]) // Helper to clear UI instantly on logout/order
     }}>
       {children}
     </CartContext.Provider>

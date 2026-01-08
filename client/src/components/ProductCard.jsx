@@ -6,20 +6,22 @@ import { useCart } from '../context/CartContext';
 const ProductCard = ({ product }) => {
   const { _id, slug, name, image, tag, category, variants } = product;
   
-  // ✅ FIX: Call the hook FIRST (Before any return statement)
   const { addToCart } = useCart();
 
   // 🔥 TEMPORARY FILTER: ONLY SHOW MUSTARD OIL
-  // Now it is safe to return null because the hook has already run.
   if (!name || !name.toLowerCase().includes("mustard")) {
     return null;
   }
 
   // 1. Determine Display Data (Default to first variant)
+  // ⚠️ NOTE: This card will ALWAYS display/add the FIRST variant (e.g., 500g).
+  // To add 1L, the user must click the image to go to the Product Details Page.
   const currentVariant = variants && variants.length > 0 ? variants[0] : null;
+  
   const displayPrice = currentVariant ? currentVariant.price : product.price;
   const displayOriginalPrice = currentVariant ? currentVariant.originalPrice : product.originalPrice;
-  const displayWeight = currentVariant ? currentVariant.weight : "";
+  // ✅ This ensures we get the specific weight (e.g. "500g")
+  const displayWeight = currentVariant ? currentVariant.weight : ""; 
 
   // 2. Calculate Discount
   const discount = displayOriginalPrice 
@@ -28,15 +30,15 @@ const ProductCard = ({ product }) => {
 
   // 3. Handle Add to Cart
   const handleAddToCart = (e) => {
-    e.preventDefault(); // Stop Link from opening
+    e.preventDefault(); 
     e.stopPropagation();
 
     addToCart({
-      id: _id,
+      productId: _id, // ✅ FIX: Changed 'id' to 'productId' to match Cart & DB Schema
       name: name,
       price: displayPrice,
       image: image,
-      variant: displayWeight,
+      variant: displayWeight, // Adds the default variant (500g)
       quantity: 1
     });
   };
@@ -93,7 +95,7 @@ const ProductCard = ({ product }) => {
           )}
         </div>
 
-        {/* ALWAYS VISIBLE ADD TO CART BUTTON */}
+        {/* ADD TO CART BUTTON */}
         <button 
           onClick={handleAddToCart}
           className="w-full bg-parosa-dark text-white py-3 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-parosa-accent transition-colors active:scale-[0.98]"

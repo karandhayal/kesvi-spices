@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingBag, ShieldCheck, Truck, Award, Check } from 'lucide-react'; // Changed Icon imports
+import { ShoppingBag, ShieldCheck, Truck, Award, Check } from 'lucide-react'; 
 import { useCart } from '../context/CartContext';
 
 const ProductDetails = () => {
@@ -16,14 +16,15 @@ const ProductDetails = () => {
   // UI State
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [qty, setQty] = useState(1);
-  const [showToast, setShowToast] = useState(false); // For the custom popup
+  const [showToast, setShowToast] = useState(false); 
 
   // 1. Fetch Data
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const apiUrl = process.env.REACT_APP_API_URL || 'https://parosa-755646660410.asia-south2.run.app';
+        // Ensure this points to your deployed backend
+        const apiUrl = 'https://parosa-755646660410.asia-south2.run.app'; 
         const { data } = await axios.get(`${apiUrl}/api/products/${slug}`);
         
         setProduct(data);
@@ -46,21 +47,22 @@ const ProductDetails = () => {
   const handleAddToCart = () => {
     if (!product) return;
 
+    // Logic to ensure we get the Selected Variant details
     const priceToUse = selectedVariant ? selectedVariant.price : product.price;
     const weightToUse = selectedVariant ? selectedVariant.weight : (product.variants?.[0]?.weight || "Standard");
 
     addToCart({
-      id: product._id,
+      productId: product._id, // ✅ FIX: Changed 'id' to 'productId' to match Cart.js
       name: product.name,
       price: priceToUse,
       image: product.image,
-      variant: weightToUse,
+      variant: weightToUse, // ✅ This sends the SELECTED weight (e.g. 1L)
       quantity: qty
     });
 
     // Show Custom Toast Notification
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000); // Hide after 3 seconds
+    setTimeout(() => setShowToast(false), 3000); 
   };
 
   // 3. Loading & Error States
@@ -87,7 +89,7 @@ const ProductDetails = () => {
     <div className="bg-parosa-bg min-h-screen pb-20 pt-20 md:pt-32">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         
-        {/* Breadcrumbs (Hidden on very small screens) */}
+        {/* Breadcrumbs */}
         <nav className="hidden md:flex flex-wrap gap-2 text-[10px] uppercase tracking-widest text-gray-500 mb-8 font-medium">
           <Link to="/" className="hover:text-parosa-dark">Home</Link> / 
           <Link to="/shop" className="hover:text-parosa-dark">{product.category || 'Shop'}</Link> / 
@@ -188,11 +190,10 @@ const ProductDetails = () => {
               </button>
             </div>
 
-            {/* Trust Badges - UPDATED */}
+            {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-2 pt-6 border-t border-gray-200">
               <TrustBadge icon={ShieldCheck} text="100% Pure" color="text-green-700" />
               <TrustBadge icon={Truck} text="Fast Delivery" color="text-blue-700" />
-              {/* Removed Easy Returns, Added Authentic Taste */}
               <TrustBadge icon={Award} text="Authentic Taste" color="text-amber-600" />
             </div>
 
