@@ -80,8 +80,9 @@ const Navbar = () => {
             <Search size={20} />
           </button>
 
-          {/* 2. USER AUTH SECTION (Login or Profile) */}
+          {/* 2. USER AUTH SECTION */}
           {user ? (
+            // --- LOGGED IN VIEW ---
             <div className="relative group cursor-pointer flex items-center gap-2">
               <User size={20} className="hover:text-parosa-accent transition-colors" />
               <span className="hidden md:block text-[10px] font-bold uppercase tracking-wider">
@@ -95,7 +96,7 @@ const Navbar = () => {
                     Signed in as <br/> <span className="font-bold text-parosa-dark">{user.email}</span>
                   </div>
                   
-                  {/* --- NEW: Orders Link --- */}
+                  {/* My Orders Link in Dropdown */}
                   <Link 
                     to="/orders"
                     className="w-full text-left px-4 py-2 text-xs uppercase tracking-widest font-bold text-gray-600 hover:bg-gray-50 flex items-center gap-2"
@@ -113,12 +114,23 @@ const Navbar = () => {
               </div>
             </div>
           ) : (
-            <Link 
-              to="/login" 
-              className="text-[10px] uppercase font-bold tracking-widest hover:text-parosa-accent transition-colors"
-            >
-              Login
-            </Link>
+            // --- GUEST VIEW (Desktop) ---
+            <div className="flex items-center gap-5">
+              {/* ADDED: Track Order Link for Guests */}
+              <Link 
+                to="/orders" 
+                className="hidden md:block text-[10px] uppercase font-bold tracking-widest hover:text-parosa-accent transition-colors"
+              >
+                Track Order
+              </Link>
+
+              <Link 
+                to="/login" 
+                className="text-[10px] uppercase font-bold tracking-widest hover:text-parosa-accent transition-colors"
+              >
+                Login
+              </Link>
+            </div>
           )}
 
           {/* 3. CART ICON WITH BADGE */}
@@ -167,7 +179,7 @@ const Navbar = () => {
             </Link>
           ))}
 
-          {/* --- NEW: Mobile Order Link --- */}
+          {/* Mobile Order Link */}
           <Link 
             to="/orders" 
             className="text-xl font-serif text-parosa-dark flex items-center gap-2"

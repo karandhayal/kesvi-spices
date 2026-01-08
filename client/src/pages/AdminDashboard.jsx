@@ -2,10 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
-  Search, Truck, CheckCircle, RefreshCw, ArrowUpRight, Save, Eye, X
+  Search, Truck, CheckCircle, RefreshCw, ArrowUpRight, Save, Eye, X, FileText, AlertTriangle
 } from 'lucide-react';
 
-// ✅ BASE URL (Change if needed)
+// ✅ BASE URL
 const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
 
 const AdminDashboard = () => {
@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   const [orderTab, setOrderTab] = useState('All'); 
   const [searchTerm, setSearchTerm] = useState('');
   
-  // New State for Modal
+  // Modal State
   const [selectedOrder, setSelectedOrder] = useState(null); 
 
   // --- INITIAL DATA FETCH ---
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
       const res = await axios.post(`${BASE_URL}/shipping/create-order/${orderId}`);
       if (res.data.success) {
         alert(`Success! Tracking ID: ${res.data.data.order_id}`);
-        fetchData();
+        fetchData(); // Refresh to show AWB
       }
     } catch (err) {
       alert("Shipping Failed: " + (err.response?.data?.message || err.message));
@@ -58,8 +58,10 @@ const AdminDashboard = () => {
   const updateStatus = async (orderId, newStatus) => {
     try {
       await axios.put(`${BASE_URL}/orders/${orderId}`, { status: newStatus });
+      
+      // Optimistic Update
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-      // Also update the selected order if modal is open
+      
       if (selectedOrder && selectedOrder._id === orderId) {
         setSelectedOrder(prev => ({ ...prev, status: newStatus }));
       }
@@ -82,14 +84,24 @@ const AdminDashboard = () => {
   const stats = useMemo(() => {
     if (!Array.isArray(orders)) return { totalRevenue: 0, totalOrders: 0, pendingOrders: 0, lowStockItems: 0, topProducts: [] };
 
-    const totalRevenue = orders.reduce((acc, o) => acc + (o.paymentStatus === 'Paid' || o.paymentMethod === 'COD' ? (o.amount || 0) : 0), 0);
+    // UPDATED: Use 'totalPrice' instead of 'amount'
+    const totalRevenue = orders.reduce((acc, o) => {
+        // Only count paid or COD orders (exclude cancelled/failed)
+        if (o.status !== 'Cancelled') {
+            return acc + (o.totalPrice || 0);
+        }
+        return acc;
+    }, 0);
+
     const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.status === 'Processing').length;
+    // UPDATED: Include 'Pending Verification' in pending count
+    const pendingOrders = orders.filter(o => o.status === 'Processing' || o.status === 'Pending Verification').length;
     const lowStockItems = products.filter(p => p.countInStock < 5).length;
     
     const productSales = {};
     orders.forEach(order => {
-      const items = order.orderItems || order.products || [];
+      // UPDATED: Use 'orderItems'
+      const items = order.orderItems || [];
       items.forEach(item => {
         if (item && item.title) {
             productSales[item.title] = (productSales[item.title] || 0) + Number(item.quantity || 1);
@@ -107,8 +119,16 @@ const AdminDashboard = () => {
   // --- FILTERED ORDERS ---
   const filteredOrders = orders.filter(order => {
     const matchesTab = orderTab === 'All' || order.status === orderTab;
-    const matchesSearch = (order._id || '').includes(searchTerm) || 
-                          (order.address?.fullName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // UPDATED: Use 'shippingAddress' for search
+    const name = order.shippingAddress?.fullName || '';
+    const phone = order.shippingAddress?.phone || '';
+    const id = order._id || '';
+
+    const matchesSearch = id.includes(searchTerm) || 
+                          name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          phone.includes(searchTerm);
+
     return matchesTab && matchesSearch;
   });
 
@@ -173,16 +193,16 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               {/* Toolbar */}
               <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-md">
-                   {['All', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(tab => (
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-md flex-wrap">
+                   {['All', 'Pending Verification', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(tab => (
                      <button
                        key={tab}
                        onClick={() => setOrderTab(tab)}
-                       className={`px-4 py-1.5 text-xs font-semibold rounded ${
+                       className={`px-3 py-1.5 text-xs font-semibold rounded ${
                          orderTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                        }`}
                      >
-                       {tab}
+                       {tab === 'Pending Verification' ? 'Verify' : tab}
                      </button>
                    ))}
                 </div>
@@ -190,7 +210,7 @@ const AdminDashboard = () => {
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
                   <input 
                     type="text" 
-                    placeholder="Search Order ID or Name..." 
+                    placeholder="Search ID, Name or Phone..." 
                     className="pl-9 pr-4 py-2 border rounded-md text-sm w-64 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -211,16 +231,22 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredOrders.map(order => {
-                      const items = order.orderItems || order.products || [];
+                      // UPDATED: Access 'orderItems'
+                      const items = order.orderItems || [];
+                      
                       return (
                       <tr key={order._id} className="hover:bg-gray-50">
                         <td className="p-4">
                           <span className="font-mono font-bold text-gray-700">#{order._id.slice(-6).toUpperCase()}</span>
                           <div className="text-xs text-gray-400 mt-1">{new Date(order.createdAt).toLocaleDateString()}</div>
+                          {order.paymentMethod === 'UPI_MANUAL' && (
+                             <span className="mt-1 inline-block px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded">UPI (Check UTR)</span>
+                          )}
                         </td>
                         <td className="p-4">
-                           <div className="font-medium">{order.address?.fullName}</div>
-                           <div className="text-xs text-gray-500">{order.address?.phone}</div>
+                           {/* UPDATED: shippingAddress */}
+                           <div className="font-medium">{order.shippingAddress?.fullName}</div>
+                           <div className="text-xs text-gray-500">{order.shippingAddress?.phone}</div>
                         </td>
                         <td className="p-4 text-xs text-gray-600 max-w-xs">
                           {items.slice(0, 2).map((p, i) => (
@@ -228,10 +254,10 @@ const AdminDashboard = () => {
                           ))}
                           {items.length > 2 && <div className="text-gray-400 italic">+{items.length - 2} more...</div>}
                         </td>
-                        <td className="p-4 font-bold text-gray-700">₹{order.amount}</td>
+                        {/* UPDATED: totalPrice */}
+                        <td className="p-4 font-bold text-gray-700">₹{order.totalPrice}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                             {/* View Details Button */}
                              <button 
                                 onClick={() => setSelectedOrder(order)}
                                 className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition"
@@ -241,23 +267,25 @@ const AdminDashboard = () => {
                              </button>
 
                              <select 
-                              value={order.status}
-                              onChange={(e) => updateStatus(order._id, e.target.value)}
-                              className={`text-xs border rounded p-1.5 font-semibold cursor-pointer ${
-                                order.status === 'Processing' ? 'text-orange-600 bg-orange-50 border-orange-200' :
-                                order.status === 'Shipped' ? 'text-blue-600 bg-blue-50 border-blue-200' :
-                                order.status === 'Delivered' ? 'text-green-600 bg-green-50 border-green-200' :
-                                'text-gray-600'
-                              }`}
-                            >
-                              <option value="Processing">Processing</option>
-                              <option value="Shipped">Shipped</option>
-                              <option value="Delivered">Delivered</option>
-                              <option value="Cancelled">Cancelled</option>
-                            </select>
+                               value={order.status}
+                               onChange={(e) => updateStatus(order._id, e.target.value)}
+                               className={`text-xs border rounded p-1.5 font-semibold cursor-pointer ${
+                                 order.status === 'Pending Verification' ? 'text-purple-600 bg-purple-50 border-purple-200' :
+                                 order.status === 'Processing' ? 'text-orange-600 bg-orange-50 border-orange-200' :
+                                 order.status === 'Shipped' ? 'text-blue-600 bg-blue-50 border-blue-200' :
+                                 order.status === 'Delivered' ? 'text-green-600 bg-green-50 border-green-200' :
+                                 'text-gray-600'
+                               }`}
+                             >
+                               <option value="Pending Verification">Verify Payment</option>
+                               <option value="Processing">Processing</option>
+                               <option value="Shipped">Shipped</option>
+                               <option value="Delivered">Delivered</option>
+                               <option value="Cancelled">Cancelled</option>
+                             </select>
                           </div>
                           
-                          {/* Shiprocket Button below */}
+                          {/* Shiprocket Button */}
                           {order.status !== 'Cancelled' && !order.shiprocketOrderId && (
                             <button 
                                 onClick={() => handleShip(order._id)}
@@ -364,7 +392,7 @@ const AdminDashboard = () => {
       {/* --- ORDER DETAILS MODAL --- */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
             
             {/* Header */}
             <div className="p-6 border-b flex justify-between items-center bg-gray-50">
@@ -378,6 +406,20 @@ const AdminDashboard = () => {
             </div>
 
             <div className="p-6 grid gap-6">
+
+              {/* UTR Verification Box (Only for Manual UPI) */}
+              {selectedOrder.paymentMethod === 'UPI_MANUAL' && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+                      <AlertTriangle className="text-yellow-600 shrink-0" size={24} />
+                      <div>
+                          <h4 className="font-bold text-yellow-800 text-sm uppercase">Verify Payment (UPI)</h4>
+                          <p className="text-sm text-yellow-800 mt-1">Customer provided Transaction ID (UTR):</p>
+                          <div className="mt-2 bg-white border border-yellow-300 px-3 py-2 rounded font-mono font-bold text-gray-800 tracking-wider select-all">
+                              {selectedOrder.paymentResult?.id || "NO ID PROVIDED"}
+                          </div>
+                      </div>
+                  </div>
+              )}
               
               {/* Top Row: Status & Amount */}
               <div className="flex flex-wrap gap-4 justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
@@ -386,12 +428,12 @@ const AdminDashboard = () => {
                     <p className="font-semibold text-blue-900">{selectedOrder.status}</p>
                  </div>
                  <div>
-                    <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Payment Method</span>
-                    <p className="font-semibold text-blue-900">{selectedOrder.paymentMethod} ({selectedOrder.paymentStatus || 'Pending'})</p>
+                    <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Payment</span>
+                    <p className="font-semibold text-blue-900">{selectedOrder.paymentMethod}</p>
                  </div>
                  <div className="text-right">
                     <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Total Amount</span>
-                    <p className="text-xl font-bold text-blue-900">₹{selectedOrder.amount}</p>
+                    <p className="text-xl font-bold text-blue-900">₹{selectedOrder.totalPrice}</p>
                  </div>
               </div>
 
@@ -399,16 +441,16 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Customer Details</h4>
-                    <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.address?.fullName}</p>
-                    <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.address?.email || 'N/A'}</p>
-                    <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.address?.phone}</p>
+                    <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.shippingAddress?.fullName}</p>
+                    <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.shippingAddress?.email || 'N/A'}</p>
+                    <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress?.phone}</p>
                  </div>
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Shipping Address</h4>
                     <p className="text-sm text-gray-600">
-                      {selectedOrder.address?.street}<br/>
-                      {selectedOrder.address?.city}, {selectedOrder.address?.state}<br/>
-                      {selectedOrder.address?.country} - <strong>{selectedOrder.address?.pincode}</strong>
+                      {selectedOrder.shippingAddress?.street}<br/>
+                      {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}<br/>
+                      {selectedOrder.shippingAddress?.country} - <strong>{selectedOrder.shippingAddress?.pincode}</strong>
                     </p>
                  </div>
               </div>
@@ -417,13 +459,13 @@ const AdminDashboard = () => {
               <div>
                 <h4 className="font-bold text-gray-700 border-b pb-2 mb-3">Order Items</h4>
                 <div className="space-y-3">
-                  {(selectedOrder.orderItems || selectedOrder.products || []).map((item, idx) => (
+                  {(selectedOrder.orderItems || []).map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded border">
                        <div className="flex items-center gap-3">
                           {item.image && <img src={item.image} alt="" className="w-12 h-12 object-cover rounded border" />}
                           <div>
                              <p className="font-medium text-gray-800">{item.title}</p>
-                             <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                             <p className="text-xs text-gray-500">Qty: {item.quantity} {item.variant && `| ${item.variant}`}</p>
                           </div>
                        </div>
                        <p className="font-medium">₹{item.price * item.quantity}</p>
