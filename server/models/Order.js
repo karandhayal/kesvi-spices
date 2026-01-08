@@ -39,7 +39,7 @@ const OrderSchema = new mongoose.Schema({
   status: { type: String, default: "Processing" },
   
   // --- Payment Details ---
-  paymentMethod: { type: String, enum: ['UPI', 'COD'], required: true },
+  paymentMethod: { type: String, enum: ['COD', 'ONLINE', 'UPI_MANUAL'], required: true },
   paymentStatus: { type: String, default: "Pending" },
   transactionId: { type: String },
 
