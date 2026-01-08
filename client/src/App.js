@@ -19,6 +19,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import ProductDetails from './pages/ProductDetails';
 import About from './pages/About';
+import RefundPolicy from './pages/RefundPolicy';
+import ShippingPolicy from './pages/ShippingPolicy';
 import OrderHistory from './pages/OrderHistory'; // <--- ADDED THIS
 
 // 3. Import Context Providers
@@ -62,6 +64,8 @@ const AppContent = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/product/:slug" element={<ProductDetails />} />
           <Route path="/about" element={<About />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/orders" element={<OrderHistory />} /> {/* <--- ADDED THIS */}
         </Routes>
       </main>

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 
 const PrivacyPolicy = () => {
-  // Ensure page starts at the top when loaded
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -10,143 +9,90 @@ const PrivacyPolicy = () => {
     <div className="bg-parosa-bg min-h-screen py-12 md:py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto bg-white p-8 md:p-16 shadow-sm border border-gray-100">
         
-        {/* HEADER */}
         <div className="text-center mb-12 border-b border-gray-100 pb-8">
           <h1 className="text-3xl md:text-5xl font-serif text-parosa-dark mb-4">Privacy Policy</h1>
-          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">
-            Effective Date: December 26, 2025
-          </p>
+          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Dhayal Industries</p>
         </div>
 
-        {/* CONTENT */}
         <div className="space-y-8 text-gray-700 text-sm md:text-base leading-relaxed font-sans">
           
-          {/* SECTION 1 */}
           <section>
             <h2 className="text-xl font-serif text-parosa-dark mb-3">1. Introduction</h2>
             <p>
-              Welcome to <strong>Parosa</strong>, a trademark brand owned and operated by <strong>Dhayal Industries</strong>. 
-              We are committed to protecting your privacy and ensuring the security of your personal information. 
-              This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website 
-              and purchase our products.
+              [cite_start]This Privacy Policy describes how Dhayal Industries and its affiliates (collectively "Dhayal Industries, we, our, us") collect, use, share, protect or otherwise process your information/ personal data through our website <strong>parosa.co.in</strong> (hereinafter referred to as Platform)[cite: 36].
             </p>
             <p className="mt-2">
-              By accessing our website and using our services, you consent to the data practices described in this policy.
+              [cite_start]We do not offer any product/service under this Platform outside India and your personal data will primarily be stored and processed in India[cite: 38]. [cite_start]By visiting this Platform, providing your information or availing any product/service offered on the Platform, you expressly agree to be bound by the terms and conditions of this Privacy Policy, the Terms of Use and the applicable service/product terms and conditions, and agree to be governed by the laws of India[cite: 39].
             </p>
           </section>
 
-          {/* SECTION 2 */}
           <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">2. Information We Collect</h2>
-            <p>We collect information that allows us to serve you better, process your orders, and communicate with you.</p>
-            
-            <h3 className="font-bold text-gray-900 mt-4 mb-2">A. Personal Information</h3>
-            <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Full Name</strong></li>
-              <li><strong>Phone Number</strong> (for order updates and delivery coordination)</li>
-              <li><strong>Email Address</strong> (for invoices and promotional updates)</li>
-              <li><strong>Shipping and Billing Address</strong> (including Pin Code)</li>
-            </ul>
-
-            <h3 className="font-bold text-gray-900 mt-4 mb-2">B. Payment Information</h3>
+            <h2 className="text-xl font-serif text-parosa-dark mb-3">2. Collection of Information</h2>
             <p>
-              We <strong>do not</strong> store your credit/debit card numbers, CVV, or net banking passwords. 
-              All payment transactions are processed through secure third-party payment gateways (e.g., PhonePe, Razorpay). 
-              These processors adhere to the standards set by PCI-DSS.
+              [cite_start]We collect your personal data when you use our Platform, services or otherwise interact with us[cite: 41]. Some of the information that we may collect includes but is not limited to:
             </p>
-
-            <h3 className="font-bold text-gray-900 mt-4 mb-2">C. Technical Data</h3>
-            <p>We automatically collect certain information when you visit our site, including IP Address, Browser Type, Device Type, and pages visited.</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+               [cite_start]<li>Name, date of birth, address, telephone/mobile number, email ID[cite: 42].</li>
+               [cite_start]<li>Information shared as proof of identity or address[cite: 42].</li>
+               [cite_start]<li>Sensitive personal data (with consent) such as bank account, credit/debit card, or other payment instrument information[cite: 43].</li>
+               [cite_start]<li>Buying behaviour and preferences[cite: 44].</li>
+            </ul>
+             <p className="mt-2">
+               [cite_start]If you receive an email or call claiming to be from Dhayal Industries seeking sensitive personal data like PINs or passwords, please <strong>never</strong> provide such information and report it to law enforcement [cite: 49-50].
+             </p>
           </section>
 
-          {/* SECTION 3 */}
           <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">3. How We Use Your Information</h2>
-            
-            <div className="mb-4">
-              <h3 className="font-bold text-gray-900 mb-1">A. Order Fulfillment</h3>
-              <p>To process and deliver your orders and communicate regarding shipment status.</p>
-            </div>
-
-            <div className="mb-4 bg-gray-50 p-4 border-l-4 border-parosa-accent">
-              <h3 className="font-bold text-gray-900 mb-1">B. Marketing and Promotions (Important)</h3>
-              <p className="italic mb-2">
-                By providing your contact details, you agree that Dhayal Industries (Parosa) may use your Name, Email, and Phone Number to send you promotional materials.
-              </p>
-              <p>
-                This includes newsletters, special offers, new product launches, festival discounts, and SMS/WhatsApp marketing alerts. 
-                You may opt-out of these communications at any time.
-              </p>
-            </div>
-
-            <div className="mb-4">
-              <h3 className="font-bold text-gray-900 mb-1">C. Improvement of Services</h3>
-              <p>To analyze website traffic and user behavior to improve our website layout and product offerings, and to prevent fraud.</p>
-            </div>
+            <h2 className="text-xl font-serif text-parosa-dark mb-3">3. Usage of Information</h2>
+            [cite_start]<p>We use personal data to[cite: 51]:</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+              [cite_start]<li>Provide services you request[cite: 51].</li>
+              [cite_start]<li>Assist sellers and business partners in handling and fulfilling orders[cite: 53].</li>
+              [cite_start]<li>Enhance customer experience and resolve disputes [cite: 53-54].</li>
+              [cite_start]<li>Inform you about offers, products, services, and updates[cite: 54].</li>
+              [cite_start]<li>Detect and protect against fraud and criminal activity[cite: 55].</li>
+            </ul>
           </section>
 
-          {/* SECTION 4 */}
           <section>
             <h2 className="text-xl font-serif text-parosa-dark mb-3">4. Sharing of Information</h2>
             <p>
-              We do not sell, trade, or rent your personal identification information to others. However, we may share data with trusted third parties for specific reasons:
+              [cite_start]We may share your personal data internally within our group entities and affiliates[cite: 58]. [cite_start]We may also disclose personal data to third parties such as logistics partners, payment processors, and business partners to facilitate your orders and services [cite: 60-61]. [cite_start]We may disclose personal data to government agencies if required by law[cite: 62].
             </p>
-            <ul className="list-disc pl-5 space-y-2 mt-3">
-              <li><strong>Logistics Partners:</strong> We share your Name, Address, and Phone Number with courier services (e.g., Shiprocket, Delhivery) strictly to ensure delivery.</li>
-              <li><strong>Payment Processors:</strong> To facilitate secure payments.</li>
-              <li><strong>Legal Compliance:</strong> If required by law or valid requests by public authorities.</li>
-            </ul>
           </section>
 
-          {/* SECTION 5 */}
           <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">5. Cookies and Tracking</h2>
-            <p>
-              Our website uses "cookies" to enhance user experience (e.g., keeping you logged in). 
-              You can choose to set your web browser to refuse cookies, but note that the Shopping Cart may not function properly without them.
-            </p>
+             <h2 className="text-xl font-serif text-parosa-dark mb-3">5. Security Precautions</h2>
+             <p>
+               [cite_start]To protect your personal data from unauthorised access or disclosure, loss or misuse we adopt reasonable security practices and procedures[cite: 66]. [cite_start]However, transmission of information over the internet is not completely secure and there are inherent risks [cite: 68-69]. [cite_start]Users are responsible for ensuring the protection of login and password records for their account[cite: 70].
+             </p>
           </section>
 
-          {/* SECTION 6 */}
           <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">6. Data Security</h2>
+            <h2 className="text-xl font-serif text-parosa-dark mb-3">6. Data Deletion and Retention</h2>
             <p>
-              We implement appropriate security measures to protect against unauthorized access or destruction of your data. 
-              Our website uses SSL (Secure Socket Layer) encryption for data transmission.
+              [cite_start]You have an option to delete your account by visiting your profile and settings on our Platform[cite: 71]. [cite_start]We retain your personal data for a period no longer than is required for the purpose for which it was collected or as required under applicable law[cite: 75].
             </p>
           </section>
 
-          {/* SECTION 7 */}
           <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">7. Your Rights & Opt-Out</h2>
+            <h2 className="text-xl font-serif text-parosa-dark mb-3">7. Consent</h2>
             <p>
-              You have the right to access and update your personal information. 
-              If you no longer wish to receive marketing communications, you may follow the "Unsubscribe" link in our emails or contact us directly.
+              [cite_start]By visiting our Platform or by providing your information, you consent to the collection, use, storage, disclosure and otherwise processing of your information on the Platform in accordance with this Privacy Policy[cite: 79].
+            </p>
+             <p className="mt-2">
+              [cite_start]You, while providing your personal data, consent to us contacting you through SMS, instant messaging apps, call and/or e-mail for purposes specified in this policy[cite: 81]. [cite_start]You can withdraw your consent by writing to the Grievance Officer[cite: 82].
             </p>
           </section>
 
-          {/* SECTION 8 */}
-          <section>
-            <h2 className="text-xl font-serif text-parosa-dark mb-3">8. Changes to This Policy</h2>
-            <p>
-              <strong>Dhayal Industries</strong> has the discretion to update this privacy policy at any time. 
-              We encourage users to frequently check this page for any changes.
-            </p>
-          </section>
-
-          {/* SECTION 9 */}
           <section className="border-t border-gray-200 pt-8 mt-8">
-            <h2 className="text-xl font-serif text-parosa-dark mb-4">10. Contact Us</h2>
-            <p className="mb-4">
-              If you have any questions about this Privacy Policy, please contact us at:
-            </p>
-            
-            <address className="not-italic bg-gray-50 p-6 rounded-sm">
-              <strong className="block text-lg mb-2 text-parosa-dark">Dhayal Industries (Parosa)</strong>
-              <p className="mb-1">Sri Vijaynagar, Rajasthan</p>
-              <p className="mb-1">Email: <a href="mailto:support@parosa.com" className="text-blue-600 underline">contact@parosa.co.in</a></p>
-              <p>Phone: +91 9587708808</p>
-            </address>
+            <h2 className="text-xl font-serif text-parosa-dark mb-4">Grievance Officer & Contact</h2>
+            <div className="bg-gray-50 p-6 rounded-sm">
+              <p><strong>Dhayal Industries</strong></p>
+              <p>Sri Vijaynagar, Rajasthan - 335704</p>
+              [cite_start]<p className="mt-2"><strong>Phone / Support:</strong> Monday - Friday (9:00 - 18:00) [cite: 95]</p>
+               <p>Email: <a href="mailto:support@parosa.co.in" className="text-blue-600 underline">support@parosa.co.in</a></p>
+            </div>
           </section>
 
         </div>
