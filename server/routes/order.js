@@ -66,6 +66,7 @@ router.post('/create', async (req, res) => {
     // ------------------------------------------
     let finalProducts = orderItems;
     
+    // If no items sent but userID exists, try fetching from DB Cart (Safety fallback)
     if ((!finalProducts || finalProducts.length === 0) && userId) {
       const cart = await Cart.findOne({ userId });
       if (cart) finalProducts = cart.products;
@@ -86,7 +87,10 @@ router.post('/create', async (req, res) => {
     });
 
     const safeSubtotal = Number(subtotal) || 0;
-    let shippingFee = safeSubtotal > 499 ? 0 : 50; 
+
+    // ✅ UPDATED SHIPPING LOGIC: Free > 399, else 60
+    let shippingFee = safeSubtotal > 399 ? 0 : 60; 
+    
     let discount = 0;
 
     // ------------------------------------------
@@ -112,24 +116,22 @@ router.post('/create', async (req, res) => {
     }
 
     // ------------------------------------------
-    // E. CREATE & SAVE ORDER (FIXED MAPPING)
+    // E. CREATE & SAVE ORDER
     // ------------------------------------------
     const newOrder = new Order({
       userId: userId || null, 
       
-      // ✅ FIX 1: Map 'shippingAddress' to 'address' (Required by Schema)
+      // Map 'shippingAddress' to 'address' (Required by Schema)
       address: shippingAddress, 
       
       orderItems: finalProducts,
       
-      // ✅ FIX 2: Map 'safeSubtotal' to 'subtotal' (Required by Schema)
+      // Map 'safeSubtotal' to 'subtotal' (Required by Schema)
       subtotal: safeSubtotal,    
       
-      // ✅ FIX 3: Map 'finalAmount' to 'amount' (Required by Schema)
+      // Map 'finalAmount' to 'amount' (Required by Schema)
       amount: finalAmount,     
       
-      // Keeping these just in case your schema uses them too, 
-      // but 'subtotal' and 'amount' are the critical ones.
       shippingPrice: shippingFee,  
       
       discount: Math.floor(discount),
@@ -155,7 +157,6 @@ router.post('/create', async (req, res) => {
 
   } catch (err) {
     console.error("Order Creation Error:", err); 
-    // Return the specific error message from Mongoose
     res.status(500).json({ success: false, message: err.message });
   }
 });

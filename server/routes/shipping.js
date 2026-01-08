@@ -4,11 +4,10 @@ const axios = require('axios');
 const Order = require('../models/Order');
 
 // --- CONFIGURATION ---
-// Ideally, put these in your .env file
 const SR_EMAIL = process.env.SR_EMAIL;
 const SR_PASSWORD = process.env.SR_PASSWORD;
 
-// HELPER: Login to Shiprocket to get a temporary Session Token
+// HELPER: Login to Shiprocket
 const getShiprocketToken = async () => {
     try {
         const res = await axios.post('https://apiv2.shiprocket.in/v1/external/auth/login', {
@@ -18,7 +17,7 @@ const getShiprocketToken = async () => {
         return res.data.token;
     } catch (error) {
         console.error("Shiprocket Login Failed:", error.response?.data || error.message);
-        throw new Error("Could not authenticate with Shiprocket. Check your email/password.");
+        throw new Error("Could not authenticate with Shiprocket.");
     }
 };
 
@@ -32,17 +31,14 @@ router.post('/create-order/:id', async (req, res) => {
         
         if (!order) return res.status(404).json({ message: "Order not found" });
 
-        // 1. Get Authentication Token
         const token = await getShiprocketToken();
-
-        // 2. Format Date (YYYY-MM-DD HH:mm)
         const date = new Date().toISOString().slice(0, 10) + " 11:00";
 
-        // 3. Prepare the Data Payload (Strict Format Required by Shiprocket)
+        // 3. Prepare Payload
         const payload = {
             order_id: order._id,
             order_date: date,
-            pickup_location: "Primary", // MUST match the name in Shiprocket Settings -> Pickup Address
+            pickup_location: "Primary", // ⚠️ MUST match your Shiprocket 'Pickup Nickname'
             
             // Customer Details
             billing_customer_name: order.address.fullName.split(" ")[0],
@@ -52,24 +48,24 @@ router.post('/create-order/:id', async (req, res) => {
             billing_pincode: order.address.pincode,
             billing_state: order.address.state,
             billing_country: "India",
-            billing_email: "customer@example.com", // You can add email to your Order schema later
+            billing_email: order.address.email || "customer@parosa.com",
             billing_phone: order.address.phone,
             
             shipping_is_billing: true,
             
-            // Products
-            order_items: order.products.map(p => ({
-                name: p.title,
+            // ✅ FIX: Use 'orderItems' instead of 'products'
+            order_items: order.orderItems.map(p => ({
+                name: p.title || p.name,
                 sku: p.productId || "SKU_DEFAULT",
                 units: p.quantity,
                 selling_price: p.price,
                 discount: 0
             })),
             
-            // Payment Logic
+            // Payment Logic (UPI_MANUAL is considered Prepaid)
             payment_method: order.paymentMethod === 'COD' ? 'COD' : 'Prepaid',
             sub_total: order.amount,
-            length: 10, breadth: 10, height: 10, weight: 0.5 // Default dimensions (Adjust if needed)
+            length: 10, breadth: 10, height: 10, weight: 0.5 
         };
 
         // 4. Send to Shiprocket
@@ -77,10 +73,10 @@ router.post('/create-order/:id', async (req, res) => {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        // 5. Save Shiprocket IDs to our Database
+        // 5. Update Local DB
         order.shiprocketOrderId = srRes.data.order_id;
         order.shipmentId = srRes.data.shipment_id;
-        order.status = "Processed"; // Update status to show we handled it
+        order.status = "Processed"; 
         await order.save();
 
         res.json({ success: true, message: "Sent to Shiprocket!", data: srRes.data });
@@ -101,30 +97,25 @@ router.get('/track/:id', async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         
-        // If we haven't shipped it yet
         if (!order || !order.shipmentId) {
             return res.status(404).json({ message: "Shipment not generated yet" });
         }
 
         const token = await getShiprocketToken();
 
-        // Call Shiprocket Tracking API
         const trackRes = await axios.get(`https://apiv2.shiprocket.in/v1/external/courier/track/shipment/${order.shipmentId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        // The API returns data keyed by shipment ID. Let's extract it safely.
         const trackingData = trackRes.data?.[order.shipmentId];
 
         if (trackingData) {
-            // If we found an AWB (Tracking Number), save it permanently
             if (trackingData.awb_code && !order.awbCode) {
                 order.awbCode = trackingData.awb_code;
                 order.courierName = trackingData.courier_name;
-                order.status = "Shipped"; // Auto-update status to Shipped
+                order.status = "Shipped"; 
                 await order.save();
             }
-            
             res.json(trackingData);
         } else {
             res.json({ status: "Pending Courier Assignment" });

@@ -36,7 +36,7 @@ const Checkout = () => {
     country: 'India'
   });
 
-  // --- CALCULATE SHIPPING ---
+  // --- CALCULATE SHIPPING (UPDATED) ---
   useEffect(() => {
     // If cart is empty, redirect back to shop
     if (cartItems.length === 0) {
@@ -44,9 +44,9 @@ const Checkout = () => {
       return;
     }
 
-    // Logic: Free shipping if > 499
+    // Logic: Free shipping if > 399, else 60
     const total = Number(cartTotal) || 0;
-    setShippingFee(total > 499 ? 0 : 50);
+    setShippingFee(total > 399 ? 0 : 60); 
   }, [cartItems, cartTotal, navigate]);
 
   // --- COUPON HANDLER ---
