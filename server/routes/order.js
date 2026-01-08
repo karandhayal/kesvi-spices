@@ -2,7 +2,7 @@ const router = require('express').Router();
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const Cart = require('../models/Cart');
-const sendOrderConfirmation = require('../utils/sendEmail'); // Import Email Utility
+// Removed: Email Import
 
 // ==========================================
 // 1. ADMIN ROUTE (Fetches all orders)
@@ -106,13 +106,6 @@ router.post('/create', async (req, res) => {
       }
     }
 
-    // UPI Discount Logic (Only if method is UPI)
-    if ((paymentMethod === 'UPI' || paymentMethod === 'UPI_MANUAL') && upiDiscount) {
-       // Optional: Add logic here if you want to enforce the 5% discount server-side
-       // const extraOff = (safeSubtotal * 0.05);
-       // discount += extraOff;
-    }
-
     // Final Math
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
 
@@ -120,7 +113,6 @@ router.post('/create', async (req, res) => {
     // D. DETERMINE STATUS
     // ------------------------------------------
     let initialStatus = 'Processing';
-    let initialPayStatus = 'Pending';
 
     // If Manual UPI, we mark it as 'Pending Verification' so Admin knows to check UTR
     if (paymentMethod === 'UPI_MANUAL') {
@@ -133,40 +125,35 @@ router.post('/create', async (req, res) => {
     const newOrder = new Order({
       userId: userId || null, 
       
-      // ✅ FIX: Map to new Schema names
       shippingAddress: shippingAddress, 
       orderItems: finalProducts,
       
-      // ✅ FIX: Map numeric values to new Schema names
-      itemsPrice: safeSubtotal,    // was 'subtotal'
-      shippingPrice: shippingFee,  // was 'shippingFee'
-      totalPrice: finalAmount,     // was 'amount'
+      itemsPrice: safeSubtotal,    
+      shippingPrice: shippingFee,  
+      totalPrice: finalAmount,     
       
       discount: Math.floor(discount),
       couponCode,
       
       paymentMethod,
-      
-      // ✅ FIX: Save the UTR / Transaction ID
       paymentResult: paymentResult || {}, 
       
       status: initialStatus,
-      isPaid: false // Always false initially for COD/Manual UPI
+      isPaid: false 
     });
 
     const savedOrder = await newOrder.save();
 
     // ------------------------------------------
-    // F. CLEANUP & NOTIFY
+    // F. CLEANUP (Email Removed)
     // ------------------------------------------
     
-    // 1. Clear Cart
+    // Clear Cart
     if (userId) {
         await Cart.findOneAndDelete({ userId }); 
     }
 
-    // 2. Send Email (Non-blocking)
-    sendOrderConfirmation(savedOrder); 
+    // Removed: sendOrderConfirmation(savedOrder); 
 
     res.status(200).json({ success: true, order: savedOrder });
 
