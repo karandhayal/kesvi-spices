@@ -2,7 +2,6 @@ const router = require('express').Router();
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const Cart = require('../models/Cart');
-// Removed: Email Import
 
 // ==========================================
 // 1. ADMIN ROUTE (Fetches all orders)
@@ -49,7 +48,7 @@ router.post('/validate-coupon', async (req, res) => {
 });
 
 // ==========================================
-// 3. CREATE ORDER (Aligned with New Schema)
+// 3. CREATE ORDER
 // ==========================================
 router.post('/create', async (req, res) => {
   const { 
@@ -57,9 +56,8 @@ router.post('/create', async (req, res) => {
     orderItems, 
     shippingAddress, 
     paymentMethod, 
-    paymentResult, // <--- Receive UTR/Transaction ID
-    couponCode, 
-    upiDiscount 
+    paymentResult, 
+    couponCode 
   } = req.body;
 
   try {
@@ -68,7 +66,6 @@ router.post('/create', async (req, res) => {
     // ------------------------------------------
     let finalProducts = orderItems;
     
-    // Fallback to DB Cart if payload empty (for logged-in users)
     if ((!finalProducts || finalProducts.length === 0) && userId) {
       const cart = await Cart.findOne({ userId });
       if (cart) finalProducts = cart.products;
@@ -89,13 +86,11 @@ router.post('/create', async (req, res) => {
     });
 
     const safeSubtotal = Number(subtotal) || 0;
-    
-    // Shipping: Free if > 499, else 50
     let shippingFee = safeSubtotal > 499 ? 0 : 50; 
     let discount = 0;
 
     // ------------------------------------------
-    // C. APPLY COUPON & DISCOUNTS
+    // C. APPLY COUPON
     // ------------------------------------------
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
@@ -106,31 +101,36 @@ router.post('/create', async (req, res) => {
       }
     }
 
-    // Final Math
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
 
     // ------------------------------------------
     // D. DETERMINE STATUS
     // ------------------------------------------
     let initialStatus = 'Processing';
-
-    // If Manual UPI, we mark it as 'Pending Verification' so Admin knows to check UTR
     if (paymentMethod === 'UPI_MANUAL') {
         initialStatus = 'Pending Verification';
     }
 
     // ------------------------------------------
-    // E. CREATE & SAVE ORDER
+    // E. CREATE & SAVE ORDER (FIXED MAPPING)
     // ------------------------------------------
     const newOrder = new Order({
       userId: userId || null, 
       
-      shippingAddress: shippingAddress, 
+      // ✅ FIX 1: Map 'shippingAddress' to 'address' (Required by Schema)
+      address: shippingAddress, 
+      
       orderItems: finalProducts,
       
-      itemsPrice: safeSubtotal,    
+      // ✅ FIX 2: Map 'safeSubtotal' to 'subtotal' (Required by Schema)
+      subtotal: safeSubtotal,    
+      
+      // ✅ FIX 3: Map 'finalAmount' to 'amount' (Required by Schema)
+      amount: finalAmount,     
+      
+      // Keeping these just in case your schema uses them too, 
+      // but 'subtotal' and 'amount' are the critical ones.
       shippingPrice: shippingFee,  
-      totalPrice: finalAmount,     
       
       discount: Math.floor(discount),
       couponCode,
@@ -145,26 +145,23 @@ router.post('/create', async (req, res) => {
     const savedOrder = await newOrder.save();
 
     // ------------------------------------------
-    // F. CLEANUP (Email Removed)
+    // F. CLEANUP
     // ------------------------------------------
-    
-    // Clear Cart
     if (userId) {
         await Cart.findOneAndDelete({ userId }); 
     }
-
-    // Removed: sendOrderConfirmation(savedOrder); 
 
     res.status(200).json({ success: true, order: savedOrder });
 
   } catch (err) {
     console.error("Order Creation Error:", err); 
+    // Return the specific error message from Mongoose
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // ==========================================
-// 4. UPDATE ORDER (Admin: Status Change)
+// 4. UPDATE ORDER
 // ==========================================
 router.put("/:id", async (req, res) => {
   try {

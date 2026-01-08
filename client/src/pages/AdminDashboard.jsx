@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
-  Search, Truck, CheckCircle, RefreshCw, ArrowUpRight, Save, Eye, X, FileText, AlertTriangle
+  Search, Truck, RefreshCw, ArrowUpRight, Save, Eye, X, AlertTriangle
 } from 'lucide-react';
 
 // ✅ BASE URL
@@ -84,23 +84,20 @@ const AdminDashboard = () => {
   const stats = useMemo(() => {
     if (!Array.isArray(orders)) return { totalRevenue: 0, totalOrders: 0, pendingOrders: 0, lowStockItems: 0, topProducts: [] };
 
-    // UPDATED: Use 'totalPrice' instead of 'amount'
+    // ✅ FIX 1: Use 'amount' (from Schema) instead of 'totalPrice'
     const totalRevenue = orders.reduce((acc, o) => {
-        // Only count paid or COD orders (exclude cancelled/failed)
         if (o.status !== 'Cancelled') {
-            return acc + (o.totalPrice || 0);
+            return acc + (o.amount || 0); 
         }
         return acc;
     }, 0);
 
     const totalOrders = orders.length;
-    // UPDATED: Include 'Pending Verification' in pending count
     const pendingOrders = orders.filter(o => o.status === 'Processing' || o.status === 'Pending Verification').length;
     const lowStockItems = products.filter(p => p.countInStock < 5).length;
     
     const productSales = {};
     orders.forEach(order => {
-      // UPDATED: Use 'orderItems'
       const items = order.orderItems || [];
       items.forEach(item => {
         if (item && item.title) {
@@ -120,9 +117,9 @@ const AdminDashboard = () => {
   const filteredOrders = orders.filter(order => {
     const matchesTab = orderTab === 'All' || order.status === orderTab;
     
-    // UPDATED: Use 'shippingAddress' for search
-    const name = order.shippingAddress?.fullName || '';
-    const phone = order.shippingAddress?.phone || '';
+    // ✅ FIX 2: Use 'address' (from Schema) instead of 'shippingAddress'
+    const name = order.address?.fullName || '';
+    const phone = order.address?.phone || '';
     const id = order._id || '';
 
     const matchesSearch = id.includes(searchTerm) || 
@@ -231,7 +228,6 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredOrders.map(order => {
-                      // UPDATED: Access 'orderItems'
                       const items = order.orderItems || [];
                       
                       return (
@@ -244,9 +240,9 @@ const AdminDashboard = () => {
                           )}
                         </td>
                         <td className="p-4">
-                           {/* UPDATED: shippingAddress */}
-                           <div className="font-medium">{order.shippingAddress?.fullName}</div>
-                           <div className="text-xs text-gray-500">{order.shippingAddress?.phone}</div>
+                           {/* ✅ FIX 3: Use 'address' */}
+                           <div className="font-medium">{order.address?.fullName}</div>
+                           <div className="text-xs text-gray-500">{order.address?.phone}</div>
                         </td>
                         <td className="p-4 text-xs text-gray-600 max-w-xs">
                           {items.slice(0, 2).map((p, i) => (
@@ -254,8 +250,8 @@ const AdminDashboard = () => {
                           ))}
                           {items.length > 2 && <div className="text-gray-400 italic">+{items.length - 2} more...</div>}
                         </td>
-                        {/* UPDATED: totalPrice */}
-                        <td className="p-4 font-bold text-gray-700">₹{order.totalPrice}</td>
+                        {/* ✅ FIX 4: Use 'amount' */}
+                        <td className="p-4 font-bold text-gray-700">₹{order.amount}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                              <button 
@@ -433,7 +429,8 @@ const AdminDashboard = () => {
                  </div>
                  <div className="text-right">
                     <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Total Amount</span>
-                    <p className="text-xl font-bold text-blue-900">₹{selectedOrder.totalPrice}</p>
+                    {/* ✅ FIX 5: Use 'amount' */}
+                    <p className="text-xl font-bold text-blue-900">₹{selectedOrder.amount}</p>
                  </div>
               </div>
 
@@ -441,16 +438,18 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Customer Details</h4>
-                    <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.shippingAddress?.fullName}</p>
-                    <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.shippingAddress?.email || 'N/A'}</p>
-                    <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress?.phone}</p>
+                    {/* ✅ FIX 6: Use 'address' */}
+                    <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.address?.fullName}</p>
+                    <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.address?.email || 'N/A'}</p>
+                    <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.address?.phone}</p>
                  </div>
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Shipping Address</h4>
                     <p className="text-sm text-gray-600">
-                      {selectedOrder.shippingAddress?.street}<br/>
-                      {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}<br/>
-                      {selectedOrder.shippingAddress?.country} - <strong>{selectedOrder.shippingAddress?.pincode}</strong>
+                      {/* ✅ FIX 7: Use 'address' */}
+                      {selectedOrder.address?.street}<br/>
+                      {selectedOrder.address?.city}, {selectedOrder.address?.state}<br/>
+                      {selectedOrder.address?.country} - <strong>{selectedOrder.address?.pincode}</strong>
                     </p>
                  </div>
               </div>

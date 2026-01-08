@@ -43,9 +43,13 @@ const Cart = () => {
           
           {/* --- CART ITEMS LIST --- */}
           <div className="flex-1 space-y-4">
-            {cartItems.map((item) => (
+            {cartItems.map((item) => {
+              // 1. FIX: Robust check for variant label (covers variant, weight, or size)
+              const variantLabel = item.variant || item.weight || item.size;
+
+              return (
               <div 
-                key={`${item.productId}-${item.variant || 'def'}`} 
+                key={`${item.productId}-${variantLabel || 'def'}`} 
                 className="bg-white p-4 md:p-6 shadow-sm border border-gray-100 flex gap-4 md:gap-6 relative group rounded-sm"
               >
                 
@@ -76,9 +80,9 @@ const Cart = () => {
                     </div>
                     
                     {/* Variant Badge */}
-                    {item.variant && (
+                    {variantLabel && (
                       <span className="text-[10px] md:text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-sm mt-1 inline-block uppercase tracking-wide">
-                        {item.variant}
+                        {variantLabel}
                       </span>
                     )}
                   </div>
@@ -121,7 +125,7 @@ const Cart = () => {
                 </button>
 
               </div>
-            ))}
+            )})}
           </div>
 
           {/* --- DESKTOP SIDEBAR SUMMARY (Hidden on Mobile) --- */}
@@ -134,9 +138,12 @@ const Cart = () => {
                 <span className="font-medium">₹{Number(cartTotal) || 0}</span>
               </div>
               
-              <div className="flex justify-between mb-6 text-sm">
+              {/* 2. FIX: Updated Shipping Text */}
+              <div className="flex justify-between items-center mb-6 text-sm">
                 <span className="text-gray-600">Shipping</span>
-                <span className="text-green-600 font-bold text-xs uppercase tracking-wider">Free</span>
+                <span className="text-gray-400 text-xs italic text-right max-w-[120px]">
+                  Calculated on next page
+                </span>
               </div>
 
               <div className="flex justify-between mb-8 text-xl font-serif border-t border-gray-100 pt-4 text-parosa-dark">
