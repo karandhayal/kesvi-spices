@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { QRCodeCanvas } from 'qrcode.react'; // <--- IMPORT THIS
+import { QRCodeCanvas } from 'qrcode.react'; 
+import { useCart } from '../context/CartContext'; // <--- 1. Import Context
 
 const Checkout = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   
+  // --- 2. GET DATA FROM CONTEXT (Instead of location.state) ---
+  const { cartItems, cartTotal } = useCart(); 
+
   // --- STATE ---
-  const [cartItems, setCartItems] = useState([]);
-  const [subtotal, setSubtotal] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('COD');
-  const [utrNumber, setUtrNumber] = useState(''); // Store UTR
+  const [utrNumber, setUtrNumber] = useState(''); 
   const [loading, setLoading] = useState(false);
   
-  // --- MERCHANT UPI DETAILS (CHANGE THESE) ---
-  const MERCHANT_UPI_ID = "dhaya95877@barodampay"; // <--- PUT YOUR UPI ID HERE
-  const MERCHANT_NAME = "DHAYAL INDUSTIRES";       // <--- PUT YOUR NAME HERE
+  // --- MERCHANT UPI DETAILS ---
+  const MERCHANT_UPI_ID = "dhaya95877@barodampay"; 
+  const MERCHANT_NAME = "DHAYAL INDUSTRIES";       
 
   // Form State
   const [formData, setFormData] = useState({
@@ -34,29 +35,26 @@ const Checkout = () => {
     country: 'India'
   });
 
-  // Load Cart Data
+  // --- 3. CALCULATE SHIPPING ---
   useEffect(() => {
-    if (location.state?.products) {
-      const items = location.state.products;
-      setCartItems(items);
-      
-      const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-      setSubtotal(total);
-      
-      // Logic: Free shipping if > 499
-      setShippingFee(total > 499 ? 0 : 50);
-    } else {
-      navigate('/cart'); 
+    // If cart is empty, redirect back to shop
+    if (cartItems.length === 0) {
+      navigate('/cart');
+      return;
     }
-  }, [location.state, navigate]);
+
+    // Logic: Free shipping if > 499
+    const total = Number(cartTotal) || 0;
+    setShippingFee(total > 499 ? 0 : 50);
+  }, [cartItems, cartTotal, navigate]);
 
   // --- COUPON HANDLER ---
   const handleApplyCoupon = async () => {
     if(!couponInput) return;
     try {
-      const res = await axios.post('https://parosa-755646660410.asia-south2.run.app/api/orders/validate-coupon', {
+      const res = await axios.post('/api/orders/validate-coupon', {
         code: couponInput,
-        cartTotal: subtotal
+        cartTotal: cartTotal
       });
       if(res.data.success) {
         setDiscount(res.data.discount);
@@ -71,10 +69,9 @@ const Checkout = () => {
   };
 
   // --- FINAL TOTAL CALCULATION ---
-  const finalTotal = Math.max(0, subtotal + shippingFee - discount);
+  const finalTotal = Math.max(0, (Number(cartTotal) || 0) + shippingFee - discount);
 
   // --- GENERATE UPI LINK ---
-  // Format: upi://pay?pa=[UPI_ID]&pn=[NAME]&am=[AMOUNT]&cu=INR
   const upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${MERCHANT_NAME}&am=${finalTotal}&cu=INR`;
 
   // --- SUBMIT ORDER ---
@@ -90,22 +87,25 @@ const Checkout = () => {
     }
 
     const orderPayload = {
-      userId: localStorage.getItem('userId') || null, // Guest or User
+      userId: localStorage.getItem('userId') || null, 
       orderItems: cartItems,
       shippingAddress: formData,
       paymentMethod,
       paymentResult: paymentMethod === 'UPI_MANUAL' ? { id: utrNumber, status: "Pending Verification" } : {},
-      itemsPrice: subtotal,
+      // itemsPrice needs to be the subtotal of items
+      itemsPrice: cartTotal,
       shippingPrice: shippingFee,
       totalPrice: finalTotal,
-      couponCode
+      couponCode,
+      // If payment is UPI, we can pass a flag if needed
+      upiDiscount: paymentMethod === 'UPI_MANUAL' 
     };
 
     try {
-      const res = await axios.post('https://parosa-755646660410.asia-south2.run.app/api/orders/create', orderPayload);
+      const res = await axios.post('/api/orders/create', orderPayload);
       if (res.data.success) {
-        alert("Order Placed Successfully!");
-        navigate('/order-success', { state: { order: res.data.order } }); // Redirect to success page
+        // alert("Order Placed Successfully!");
+        navigate('/order-success', { state: { order: res.data.order } }); 
       }
     } catch (err) {
       console.error(err);
@@ -116,7 +116,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 font-sans">
+    <div className="min-h-screen bg-gray-50 py-10 px-4 font-sans pt-28"> 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* LEFT COLUMN: FORM */}
@@ -199,7 +199,7 @@ const Checkout = () => {
                           {item.image && <img src={item.image} alt="" className="w-full h-full object-cover"/>}
                        </div>
                        <div>
-                          <p className="font-medium text-gray-700">{item.title}</p>
+                          <p className="font-medium text-gray-700">{item.name || item.title}</p>
                           <p className="text-gray-500">Qty: {item.quantity}</p>
                        </div>
                     </div>
@@ -230,7 +230,7 @@ const Checkout = () => {
             <div className="space-y-2 border-t pt-4 text-sm text-gray-600">
                <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{subtotal}</span>
+                  <span>₹{cartTotal}</span>
                </div>
                <div className="flex justify-between">
                   <span>Shipping</span>
@@ -292,7 +292,7 @@ const Checkout = () => {
                         <QRCodeCanvas 
                           value={upiLink} 
                           size={180} 
-                          level={"H"} // High error correction
+                          level={"H"} 
                           includeMargin={true}
                         />
                     </div>
