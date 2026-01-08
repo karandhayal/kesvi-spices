@@ -36,7 +36,7 @@ const Checkout = () => {
     country: 'India'
   });
 
-  // --- CALCULATE SHIPPING (UPDATED) ---
+  // --- CALCULATE SHIPPING ---
   useEffect(() => {
     // If cart is empty, redirect back to shop
     if (cartItems.length === 0) {
@@ -46,7 +46,7 @@ const Checkout = () => {
 
     // Logic: Free shipping if > 399, else 60
     const total = Number(cartTotal) || 0;
-    setShippingFee(total > 399 ? 0 : 60); 
+    setShippingFee(total > 399 ? 0 : 60);
   }, [cartItems, cartTotal, navigate]);
 
   // --- COUPON HANDLER ---
@@ -69,8 +69,11 @@ const Checkout = () => {
     }
   };
 
+  // --- ✅ NEW: COD FEE CALCULATION ---
+  const codFee = paymentMethod === 'COD' ? 50 : 0;
+
   // --- FINAL TOTAL CALCULATION ---
-  const finalTotal = Math.max(0, (Number(cartTotal) || 0) + shippingFee - discount);
+  const finalTotal = Math.max(0, (Number(cartTotal) || 0) + shippingFee + codFee - discount);
 
   // --- GENERATE UPI LINK ---
   const upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${MERCHANT_NAME}&am=${finalTotal}&cu=INR`;
@@ -104,12 +107,10 @@ const Checkout = () => {
       const res = await axios.post('/api/orders/create', orderPayload);
       
       if (res.data.success) {
-        // Optional: Clear cart logic here if not handled by backend/context
+        // Optional: Clear cart logic here
         // clearCart(); 
 
-        // ✅ Navigate with URL Params so Success Page can read them
         let successUrl = `/order-success?id=${res.data.order._id}`;
-        
         if(paymentMethod === 'UPI_MANUAL' && utrNumber) {
             successUrl += `&ref=${utrNumber}`;
         }
@@ -284,6 +285,15 @@ const Checkout = () => {
                     {shippingFee === 0 ? "FREE" : `₹${shippingFee}`}
                   </span>
                </div>
+               
+               {/* ✅ COD FEE ROW */}
+               {codFee > 0 && (
+                 <div className="flex justify-between">
+                    <span>COD Charges</span>
+                    <span>₹{codFee}</span>
+                 </div>
+               )}
+
                {discount > 0 && (
                  <div className="flex justify-between text-green-600">
                    <span>Discount</span>
@@ -316,7 +326,10 @@ const Checkout = () => {
                   />
                   <div className="flex items-center gap-3">
                     <Truck size={20} className="text-gray-600"/>
-                    <span className="font-medium text-parosa-dark text-sm uppercase tracking-wide">Cash on Delivery</span>
+                    <div>
+                      <span className="font-medium text-parosa-dark text-sm uppercase tracking-wide block">Cash on Delivery</span>
+                      <span className="text-[10px] text-gray-400 font-bold">+ ₹50 Charges Apply</span>
+                    </div>
                   </div>
                </label>
 

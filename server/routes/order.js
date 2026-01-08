@@ -88,9 +88,15 @@ router.post('/create', async (req, res) => {
 
     const safeSubtotal = Number(subtotal) || 0;
 
-    // ✅ UPDATED SHIPPING LOGIC: Free > 399, else 60
+    // ✅ SHIPPING LOGIC: Free > 399, else 60
     let shippingFee = safeSubtotal > 399 ? 0 : 60; 
     
+    // ✅ NEW: COD FEE LOGIC
+    let codFee = 0;
+    if (paymentMethod === 'COD') {
+        codFee = 50;
+    }
+
     let discount = 0;
 
     // ------------------------------------------
@@ -105,7 +111,8 @@ router.post('/create', async (req, res) => {
       }
     }
 
-    const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee - discount));
+    // ✅ FINAL CALCULATION (Includes COD Fee)
+    const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee + codFee - discount));
 
     // ------------------------------------------
     // D. DETERMINE STATUS
@@ -121,15 +128,15 @@ router.post('/create', async (req, res) => {
     const newOrder = new Order({
       userId: userId || null, 
       
-      // Map 'shippingAddress' to 'address' (Required by Schema)
+      // Map 'shippingAddress' to 'address'
       address: shippingAddress, 
       
       orderItems: finalProducts,
       
-      // Map 'safeSubtotal' to 'subtotal' (Required by Schema)
+      // Map 'safeSubtotal' to 'subtotal'
       subtotal: safeSubtotal,    
       
-      // Map 'finalAmount' to 'amount' (Required by Schema)
+      // Map 'finalAmount' to 'amount'
       amount: finalAmount,     
       
       shippingPrice: shippingFee,  

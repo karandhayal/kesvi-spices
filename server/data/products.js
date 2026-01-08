@@ -153,7 +153,7 @@ const products = [
     originalPrice: 347,
     countInStock: 30,
     variants: [
-      { weight: "1L", price: 247, originalPrice: 347 }
+      { weight: "1L", price: 270, originalPrice: 347 }
     ]
   },
   {
@@ -164,11 +164,11 @@ const products = [
     image: "/products/mustard.png",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 399,
-    originalPrice: 500,
+    price: 499,
+    originalPrice: 700,
     countInStock: 30,
     variants: [
-      { weight: "2L", price: 399, originalPrice: 500 }
+      { weight: "2L", price: 499, originalPrice: 700 }
     ]
   },
   {
@@ -179,11 +179,11 @@ const products = [
     image: "/products/mustard5.png",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 899,
-    originalPrice: 1100,
+    price: 999,
+    originalPrice: 1400,
     countInStock: 30,
     variants: [
-      { weight: "5L", price: 899, originalPrice: 1100 }
+      { weight: "5L", price: 999, originalPrice: 1400 }
     ]
   },
   {
@@ -194,11 +194,11 @@ const products = [
     image: "/products/mustard15.png",
     benefits: "Cold Pressed • High Pungency • Heart Healthy",
     description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 2700,
-    originalPrice: 3100,
+    price: 2950,
+    originalPrice: 3800,
     countInStock: 30,
     variants: [
-      { weight: "15L", price: 2700, originalPrice: 3100 }
+      { weight: "15L", price: 2950, originalPrice: 3800 }
     ]
   },
   {
