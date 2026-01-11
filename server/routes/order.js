@@ -198,5 +198,49 @@ router.get('/:userId', async (req, res) => {
     res.status(500).json(err);
   }
 });
+// ==========================================
+// 6. GUEST TRACK ORDER (Public)
+// ==========================================
+router.post('/track', async (req, res) => {
+  try {
+    const { orderId, phone } = req.body;
 
+    // 1. Basic Validation
+    if (!orderId || !phone) {
+      return res.status(400).json({ success: false, message: "Order ID and Phone are required" });
+    }
+
+    // 2. Find Order
+    // We use try/catch inside here specifically because if 'orderId' 
+    // is not a valid MongoDB ObjectId (e.g. user typed "123"), Mongoose will crash.
+    let order;
+    try {
+       order = await Order.findById(orderId);
+    } catch (err) {
+       // If ID format is wrong, just return not found
+       return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // 3. Check if order exists
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // 4. Verify Phone Number (Security)
+    // We compare the phone stored in the order address vs the one entered
+    // We use String() to ensure we don't fail on number vs string types
+    const orderPhone = order.address?.phone || "";
+    
+    if (String(orderPhone) !== String(phone)) {
+      return res.status(401).json({ success: false, message: "Phone number does not match this order" });
+    }
+
+    // 5. Return Success
+    res.status(200).json(order);
+
+  } catch (err) {
+    console.error("Tracking Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
 module.exports = router;
