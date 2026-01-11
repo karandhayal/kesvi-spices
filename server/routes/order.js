@@ -57,7 +57,8 @@ router.post('/create', async (req, res) => {
     shippingAddress, 
     paymentMethod, 
     paymentResult, 
-    couponCode 
+    couponCode,
+    isPaid // ✅ NEW: Receive payment status from Frontend
   } = req.body;
 
   try {
@@ -91,7 +92,7 @@ router.post('/create', async (req, res) => {
     // ✅ SHIPPING LOGIC: Free > 399, else 60
     let shippingFee = safeSubtotal > 399 ? 0 : 60; 
     
-    // ✅ NEW: COD FEE LOGIC
+    // ✅ COD FEE LOGIC
     let codFee = 0;
     if (paymentMethod === 'COD') {
         codFee = 50;
@@ -148,7 +149,9 @@ router.post('/create', async (req, res) => {
       paymentResult: paymentResult || {}, 
       
       status: initialStatus,
-      isPaid: false 
+      
+      // ✅ FIX: Use the 'isPaid' flag sent from frontend (for Razorpay) or default to false
+      isPaid: isPaid || false 
     });
 
     const savedOrder = await newOrder.save();
