@@ -6,7 +6,7 @@ const helmet = require("helmet");
 const connectDB = require("./db");
 
 const app = express();
-
+const storeRoute = require('./routes/store');
 /* ================================
    1. CORS CONFIG (VERY IMPORTANT)
 ================================ */
@@ -95,7 +95,7 @@ app.use("/api/cart", require("./routes/cart"));
 app.use("/api/orders", require("./routes/order"));
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/shipping", require("./routes/shipping"));
-
+app.use('/api/stores', storeRoute);
 /* ================================
    7. GLOBAL ERROR HANDLER
 ================================ */
