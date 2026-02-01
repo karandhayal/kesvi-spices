@@ -13,7 +13,7 @@ import {
 /* --- ASSETS & CONSTANTS --- */
 const IMAGES = {
   hero: "/hero-organic-2.jpg", 
-  farmer: "/api/placeholder/800/800",
+  farmer: "/farmer-soil.png",
   wheat: "/api/placeholder/800/600"
 };
 
