@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion, useScroll } from 'framer-motion';
 import { 
   Wheat, 
   ShieldCheck, 
   Wind, 
   Truck, 
-  Users, 
   Lock, 
   ChevronDown, 
   Star 
