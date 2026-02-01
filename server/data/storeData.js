@@ -1,6 +1,6 @@
 const storeData = [
   {
-    name: "Parosa Flagship - Bandra",
+    name: "Parosa-Rohtak: KB Trading Company",
     address: "Plot 105, Turner Road, Bandra West",
     city: "Mumbai",
     state: "Maharashtra",

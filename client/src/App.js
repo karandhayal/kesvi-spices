@@ -22,6 +22,7 @@ import About from './pages/About';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import StoreFinder from './pages/StoreFinder';
+import OrganicAtta from './pages/organic';
 import OrderHistory from './pages/OrderHistory'; // <--- ADDED THIS
 
 // 3. Import Context Providers
@@ -68,6 +69,7 @@ const AppContent = () => {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/store-finder" element={<StoreFinder />} />
+          <Route path="/organic-atta" element={<OrganicAtta />} />
           <Route path="/orders" element={<OrderHistory />} /> {/* <--- ADDED THIS */}
         </Routes>
       </main>
