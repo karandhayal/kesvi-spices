@@ -13,7 +13,7 @@ import {
 /* --- ASSETS & CONSTANTS --- */
 // Using placeholders for demo. In production, use high-fidelity macro photography.
 const IMAGES = {
-  hero: "/hero-organic.jpg", 
+  hero: "/hero-organic-2.jpg", 
   farmer: "/api/placeholder/800/800",
   wheat: "/api/placeholder/800/600"
 };
@@ -44,9 +44,11 @@ const ProgressBar = () => {
 const HeroSection = () => {
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Video/Image Parallax */}
+      {/* Background Image & Overlay */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-black/30 z-10" /> {/* Overlay for text readability */}
+        {/* DARKER OVERLAY: Increased to /50 for better readability */}
+        <div className="absolute inset-0 bg-black/50 z-10" /> 
+        
         <img 
           src={IMAGES.hero} 
           alt="Golden wheat fields at sunset" 
