@@ -7,13 +7,17 @@ import {
   Truck, 
   Lock, 
   ChevronDown, 
-  Star 
+  Star,
+  Scale,
+  Calendar,
+  MapPin
 } from 'lucide-react';
 
 /* --- ASSETS & CONSTANTS --- */
 const IMAGES = {
   hero: "/hero-organic-2.jpg", 
-  farmer: "/farmer-soil.png",
+  farmer: "/farmer-soil.png", // Update this if you have the farmer image
+  product: "/product-pack.jpg", // <--- PLACE YOUR GENERATED PRODUCT IMAGE HERE
   wheat: "/api/placeholder/800/600"
 };
 
@@ -22,6 +26,18 @@ const BRAND_COLORS = {
   text: "text-[#2C2420]", // Deep Loam
   accent: "text-[#B08968]", // Wheat Gold
   subtle: "bg-[#E6E2DD]" // Stone
+};
+
+/* --- HELPER FUNCTIONS --- */
+const scrollToApply = () => {
+  const section = document.getElementById('apply');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+const handleApply = () => {
+  alert("Thank you for your interest. Our concierge will contact you shortly to finalize your membership.");
 };
 
 /* --- COMPONENTS --- */
@@ -61,7 +77,6 @@ const HeroSection = () => {
             The Private Harvest Collection
           </span>
           
-          {/* Responsive Typography: Smaller on mobile, Huge on desktop */}
           <h1 className="text-4xl md:text-7xl lg:text-8xl font-serif text-white mb-6 leading-[1.1] md:leading-tight">
             Crafted for <span className="italic text-[#E6C9A8]">100 Families</span>.<br />
             <span className="block mt-2 md:mt-0">Not the Market.</span>
@@ -72,10 +87,12 @@ const HeroSection = () => {
             Delivered monthly to a closed circle of connoisseurs.
           </p>
           
+          {/* UPDATED BUTTON WITH SCROLL LOGIC */}
           <motion.button 
+            onClick={scrollToApply}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-white text-[#2C2420] px-6 py-3 md:px-8 md:py-4 uppercase tracking-widest text-xs md:text-sm font-semibold hover:bg-[#E6C9A8] transition-colors duration-500 w-auto"
+            className="bg-white text-[#2C2420] px-6 py-3 md:px-8 md:py-4 uppercase tracking-widest text-xs md:text-sm font-semibold hover:bg-[#E6C9A8] transition-colors duration-500 w-auto cursor-pointer"
           >
             Request Invitation
           </motion.button>
@@ -99,7 +116,7 @@ const StorySection = () => {
     <section className={`${BRAND_COLORS.bg} py-16 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden`}>
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         
-        {/* Image Side - Order 1 on mobile (shows first) */}
+        {/* Image Side */}
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -110,13 +127,12 @@ const StorySection = () => {
           <div className="aspect-[4/5] bg-[#E6E2DD] overflow-hidden rounded-sm">
              <img src={IMAGES.farmer} alt="Farmer hands in soil" className="w-full h-full object-cover hover:scale-105 transition-transform duration-[2s]" />
           </div>
-          {/* Floating Quote - Hidden on very small screens, visible on tablet+ */}
           <div className="absolute -bottom-4 -right-2 md:-bottom-6 md:-right-6 bg-white p-4 md:p-6 shadow-xl max-w-[200px] md:max-w-xs hidden sm:block">
             <p className="font-serif italic text-sm md:text-lg text-[#2C2420]">"We don't grow for yield. We grow for the soul of the grain."</p>
           </div>
         </motion.div>
 
-        {/* Text Side - Order 2 on mobile */}
+        {/* Text Side */}
         <motion.div 
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -180,51 +196,116 @@ const ProcessSection = () => {
         </div>
 
         <div className="relative flex flex-col md:flex-row justify-between items-start gap-12 md:gap-4 ml-2 md:ml-0">
-          
           {/* Desktop Horizontal Line */}
           <div className="hidden md:block absolute top-10 left-0 w-full h-px bg-[#E6E2DD] z-0" />
-          
           {/* Mobile Vertical Line */}
           <div className="md:hidden absolute top-4 left-[2px] w-px h-[90%] bg-[#E6E2DD] z-0" />
 
-          <ProcessStep 
-            step={1}
-            icon={Wheat} 
-            title="Ethical Sourcing" 
-            desc="Direct harvest from our exclusive organic partner farm." 
-          />
-          <ProcessStep 
-            step={2}
-            icon={Wind} 
-            title="Hygienic Cleaning" 
-            desc="Triple-cleaned to remove impurities without stripping nutrients." 
-          />
-          <ProcessStep 
-            step={3}
-            icon={ShieldCheck} 
-            title="Vacuum Storage" 
-            desc="Stored in vacuum to prevent oxidation and pest infestation." 
-          />
-          <ProcessStep 
-            step={4}
-            icon={Truck} 
-            title="Monthly Delivery" 
-            desc="Freshly ground batches delivered directly to your doorstep." 
-          />
+          <ProcessStep step={1} icon={Wheat} title="Ethical Sourcing" desc="Direct harvest from our exclusive organic partner farm." />
+          <ProcessStep step={2} icon={Wind} title="Hygienic Cleaning" desc="Triple-cleaned to remove impurities without stripping nutrients." />
+          <ProcessStep step={3} icon={ShieldCheck} title="Vacuum Storage" desc="Stored in vacuum to prevent oxidation and pest infestation." />
+          <ProcessStep step={4} icon={Truck} title="Monthly Delivery" desc="Freshly ground batches delivered directly to your doorstep." />
         </div>
       </div>
     </section>
   );
 };
 
-// 5. MEMBERSHIP SECTION
+// 5. NEW PRODUCT SHOWCASE SECTION
+const ProductShowcase = () => {
+  return (
+    <section className="bg-[#F9F7F2] py-20 md:py-32 px-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+        
+        {/* Product Image */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative flex justify-center order-1 md:order-2"
+        >
+          {/* Decorative Circle */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-white rounded-full mix-blend-multiply filter blur-3xl opacity-70" />
+          
+          {/* Product Image - use placeholders if image not loaded */}
+          <img 
+            src={IMAGES.product}
+            onError={(e) => {e.target.src = "/api/placeholder/600/800"}} // Fallback
+            alt="Parosa 10kg Premium Wheat Pack" 
+            className="relative z-10 w-full max-w-[300px] md:max-w-md h-auto drop-shadow-2xl -rotate-3 hover:rotate-0 transition-transform duration-700"
+          />
+        </motion.div>
+
+        {/* Product Details */}
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="order-2 md:order-1"
+        >
+          <span className="text-[#B08968] font-bold tracking-widest uppercase text-xs mb-3 block">
+            The 2026 Harvest
+          </span>
+          <h2 className="text-4xl md:text-5xl font-serif text-[#2C2420] mb-6">
+            10kg of <span className="italic">Pure Gold</span>.
+          </h2>
+          <p className="text-gray-600 mb-8 font-light text-base md:text-lg leading-relaxed">
+            This isn't just flour; it's the result of 120 days of careful nurturing. 
+            Packaged in our signature vacuum-sealed breathable bags to ensure the 
+            Atta remains as fresh as the day it was stone-ground.
+          </p>
+
+          {/* Specs Grid */}
+          <div className="grid grid-cols-2 gap-y-8 gap-x-4 border-t border-[#E6E2DD] pt-8">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[#B08968]">
+                <Scale size={18} />
+                <span className="text-xs uppercase tracking-wider font-bold">Net Weight</span>
+              </div>
+              <span className="text-xl font-serif text-[#2C2420]">10 Kilograms</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[#B08968]">
+                <MapPin size={18} />
+                <span className="text-xs uppercase tracking-wider font-bold">Origin</span>
+              </div>
+              <span className="text-xl font-serif text-[#2C2420]">Sehore, MP</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[#B08968]">
+                <Wheat size={18} />
+                <span className="text-xs uppercase tracking-wider font-bold">Variety</span>
+              </div>
+              <span className="text-xl font-serif text-[#2C2420]">Sharbati 306</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[#B08968]">
+                <Calendar size={18} />
+                <span className="text-xs uppercase tracking-wider font-bold">Shelf Life</span>
+              </div>
+              <span className="text-xl font-serif text-[#2C2420]">6 Months (Vacuum)</span>
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
+    </section>
+  );
+};
+
+// 6. MEMBERSHIP SECTION (Updated with ID and Alert)
 const MembershipSection = () => {
-  // Simulating limited spots
   const totalSpots = 100;
   const takenSpots = 20;
 
   return (
-    <section className="bg-[#2C2420] text-[#F9F7F2] py-20 md:py-32 px-6">
+    // ADDED ID HERE FOR SCROLL TARGET
+    <section id="apply" className="bg-[#2C2420] text-[#F9F7F2] py-20 md:py-32 px-6">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12 md:gap-16 items-center">
         
         {/* Left: The Logic */}
@@ -244,7 +325,6 @@ const MembershipSection = () => {
             we can only support 100 families per harvest year.
           </p>
 
-          {/* Scarcity Counter */}
           <div className="bg-white/5 p-5 md:p-6 border border-white/10 rounded-sm backdrop-blur-sm">
             <div className="flex justify-between text-xs md:text-sm uppercase tracking-widest mb-2 text-[#B08968]">
               <span>Current Availability</span>
@@ -278,7 +358,7 @@ const MembershipSection = () => {
 
           <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10">
             {[
-              "100% Organic 1482 Wheat",
+              "100% Organic Sharbati Wheat",
               "Vacuum Packed for 12-Month Freshness",
               "Monthly Doorstep Delivery",
               "Priority Farm Visit Access",
@@ -291,7 +371,11 @@ const MembershipSection = () => {
             ))}
           </ul>
 
-          <button className="w-full bg-[#2C2420] text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-[#4a3e36] transition-all">
+          {/* UPDATED BUTTON WITH ALERT LOGIC */}
+          <button 
+            onClick={handleApply}
+            className="w-full bg-[#2C2420] text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-[#4a3e36] transition-all cursor-pointer"
+          >
             Apply for Membership
           </button>
           
@@ -305,11 +389,10 @@ const MembershipSection = () => {
   );
 };
 
-// 6. FOOTER / TRUST
+// 7. FOOTER / TRUST
 const FooterTrust = () => {
   return (
     <div className="bg-[#E6E2DD] py-8 md:py-12 border-t border-[#d6d2cd]">
-      {/* Grid on mobile, Flex on desktop */}
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:flex md:flex-wrap justify-center gap-x-4 gap-y-8 md:gap-12 opacity-60">
         {['Certified Organic', 'Zero Pesticide', 'Small Batch', 'Fair Trade'].map((badge) => (
           <div key={badge} className="flex items-center justify-center md:justify-start gap-2 text-center">
@@ -332,7 +415,6 @@ const OrganicProductPage = () => {
       <nav className="fixed top-0 w-full z-40 px-6 py-5 md:px-8 md:py-6 flex justify-between items-center mix-blend-difference text-white">
         <div className="font-serif text-xl md:text-2xl tracking-tighter font-bold z-50">BRAND.</div>
         
-        {/* Desktop Links */}
         <div className="hidden md:flex gap-8 text-xs uppercase tracking-widest font-medium">
           <button className="hover:opacity-70">Story</button>
           <button className="hover:opacity-70">Process</button>
@@ -348,6 +430,7 @@ const OrganicProductPage = () => {
         <HeroSection />
         <StorySection />
         <ProcessSection />
+        <ProductShowcase /> {/* NEW SECTION ADDED */}
         <MembershipSection />
         <FooterTrust />
       </main>
