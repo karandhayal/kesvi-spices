@@ -13,7 +13,7 @@ import {
 /* --- ASSETS & CONSTANTS --- */
 // Using placeholders for demo. In production, use high-fidelity macro photography.
 const IMAGES = {
-  hero: "/api/placeholder/1920/1080", 
+  hero: "/hero-organic.jpg", 
   farmer: "/api/placeholder/800/800",
   wheat: "/api/placeholder/800/600"
 };
