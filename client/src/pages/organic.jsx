@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion, useScroll } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import { 
   Wheat, 
   ShieldCheck, 
@@ -10,14 +10,16 @@ import {
   Star,
   Scale,
   Calendar,
-  MapPin
+  MapPin,
+  X,
+  Check
 } from 'lucide-react';
 
 /* --- ASSETS & CONSTANTS --- */
 const IMAGES = {
   hero: "/hero-organic-2.jpg", 
-  farmer: "/farmer-soil.png", // Update this if you have the farmer image
-  product: "/product-pack.jpg", // <--- PLACE YOUR GENERATED PRODUCT IMAGE HERE
+  farmer: "/farmer-soil.png", 
+  product: "/product-pack.jpg",
   wheat: "/api/placeholder/800/600"
 };
 
@@ -28,21 +30,93 @@ const BRAND_COLORS = {
   subtle: "bg-[#E6E2DD]" // Stone
 };
 
-/* --- HELPER FUNCTIONS --- */
-const scrollToApply = () => {
-  const section = document.getElementById('apply');
-  if (section) {
-    section.scrollIntoView({ behavior: 'smooth' });
-  }
-};
-
-const handleApply = () => {
-  alert("Thank you for your interest. Our concierge will contact you shortly to finalize your membership.");
-};
-
 /* --- COMPONENTS --- */
 
-// 1. SCROLL PROGRESS INDICATOR
+// 1. APPLICATION MODAL (New Component)
+const ApplicationModal = ({ isOpen, onClose }) => {
+  const [step, setStep] = useState(1); // 1 = Form, 2 = Success
+
+  // Reset form when closed
+  useEffect(() => {
+    if (!isOpen) setStep(1);
+  }, [isOpen]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Simulate API call
+    setTimeout(() => {
+      setStep(2);
+    }, 1000);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      >
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-[#F9F7F2] w-full max-w-lg relative shadow-2xl overflow-hidden rounded-sm"
+        >
+          {/* Close Button */}
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-[#2C2420] transition-colors">
+            <X size={24} />
+          </button>
+
+          {step === 1 ? (
+            <div className="p-8 md:p-10">
+              <span className="uppercase text-[#B08968] tracking-widest text-xs font-bold mb-2 block">The Heritage Circle</span>
+              <h3 className="font-serif text-3xl text-[#2C2420] mb-6">Request Invitation</h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Full Name</label>
+                  <input required type="text" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="Enter your name" />
+                </div>
+                
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Email Address</label>
+                  <input required type="email" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="email@address.com" />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Phone (Optional)</label>
+                  <input type="tel" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="+91 ..." />
+                </div>
+
+                <button type="submit" className="w-full bg-[#2C2420] text-white py-4 mt-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#4a3e36] transition-all">
+                  Submit Request
+                </button>
+              </form>
+              <p className="text-center text-[10px] text-gray-400 mt-4">Limited spots available for the 2026 harvest.</p>
+            </div>
+          ) : (
+            <div className="p-12 text-center bg-[#2C2420] text-[#F9F7F2]">
+              <div className="w-16 h-16 bg-[#B08968] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check size={32} className="text-white" />
+              </div>
+              <h3 className="font-serif text-3xl mb-4">Request Received</h3>
+              <p className="text-white/70 font-light leading-relaxed mb-8">
+                We have added you to our priority review list. Our concierge will contact you within 24 hours to finalize your allocation.
+              </p>
+              <button onClick={onClose} className="text-[#B08968] uppercase text-xs tracking-widest border-b border-[#B08968] pb-1 hover:text-white hover:border-white transition-colors">
+                Close Window
+              </button>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+// 2. SCROLL PROGRESS INDICATOR
 const ProgressBar = () => {
   const { scrollYProgress } = useScroll();
   return (
@@ -53,11 +127,16 @@ const ProgressBar = () => {
   );
 };
 
-// 2. HERO SECTION
-const HeroSection = () => {
+// 3. HERO SECTION (Height Reduced on Mobile)
+const HeroSection = ({ onOpenModal }) => {
+  const scrollToApply = () => {
+    const section = document.getElementById('apply');
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative h-[90vh] md:h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image & Overlay */}
+    // UPDATED: h-[80vh] on mobile instead of 90vh or screen
+    <section className="relative h-[80vh] md:h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-black/40 md:bg-black/50 z-10" /> 
         <img 
@@ -87,7 +166,6 @@ const HeroSection = () => {
             Delivered monthly to a closed circle of connoisseurs.
           </p>
           
-          {/* UPDATED BUTTON WITH SCROLL LOGIC */}
           <motion.button 
             onClick={scrollToApply}
             whileHover={{ scale: 1.02 }}
@@ -110,19 +188,19 @@ const HeroSection = () => {
   );
 };
 
-// 3. STORY SECTION
+// 4. STORY SECTION (Reordered for Mobile)
 const StorySection = () => {
   return (
     <section className={`${BRAND_COLORS.bg} py-16 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden`}>
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         
-        {/* Image Side */}
+        {/* Image Side - ORDER CHANGED: order-2 on mobile (Bottom), order-1 on desktop (Left) */}
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative order-1 md:order-none"
+          className="relative order-2 md:order-1" 
         >
           <div className="aspect-[4/5] bg-[#E6E2DD] overflow-hidden rounded-sm">
              <img src={IMAGES.farmer} alt="Farmer hands in soil" className="w-full h-full object-cover hover:scale-105 transition-transform duration-[2s]" />
@@ -132,13 +210,13 @@ const StorySection = () => {
           </div>
         </motion.div>
 
-        {/* Text Side */}
+        {/* Text Side - ORDER CHANGED: order-1 on mobile (Top), order-2 on desktop (Right) */}
         <motion.div 
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="order-2 md:order-none"
+          className="order-1 md:order-2"
         >
           <h2 className={`text-3xl md:text-5xl font-serif ${BRAND_COLORS.text} mb-6 md:mb-8 leading-tight`}>
             A Return to <br/><span className="italic text-[#B08968]">Ancestral Purity</span>
@@ -163,7 +241,7 @@ const StorySection = () => {
   );
 };
 
-// 4. PROCESS SECTION
+// 5. PROCESS SECTION
 const ProcessStep = ({ icon: Icon, title, desc, step }) => (
   <motion.div 
     className="flex flex-row md:flex-col items-start md:items-center text-left md:text-center relative z-10 gap-6 md:gap-0 pl-4 md:pl-0"
@@ -172,7 +250,6 @@ const ProcessStep = ({ icon: Icon, title, desc, step }) => (
     viewport={{ once: true }}
     transition={{ delay: step * 0.1 }}
   >
-    {/* Mobile Timeline Dot */}
     <div className="absolute left-[-5px] top-6 w-3 h-3 rounded-full bg-[#B08968] md:hidden z-20" />
     
     <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#B08968]/30 flex flex-shrink-0 items-center justify-center bg-[#F9F7F2] md:mb-6 shadow-sm group hover:border-[#B08968] transition-colors">
@@ -196,9 +273,7 @@ const ProcessSection = () => {
         </div>
 
         <div className="relative flex flex-col md:flex-row justify-between items-start gap-12 md:gap-4 ml-2 md:ml-0">
-          {/* Desktop Horizontal Line */}
           <div className="hidden md:block absolute top-10 left-0 w-full h-px bg-[#E6E2DD] z-0" />
-          {/* Mobile Vertical Line */}
           <div className="md:hidden absolute top-4 left-[2px] w-px h-[90%] bg-[#E6E2DD] z-0" />
 
           <ProcessStep step={1} icon={Wheat} title="Ethical Sourcing" desc="Direct harvest from our exclusive organic partner farm." />
@@ -211,13 +286,12 @@ const ProcessSection = () => {
   );
 };
 
-// 5. NEW PRODUCT SHOWCASE SECTION
+// 6. PRODUCT SHOWCASE SECTION
 const ProductShowcase = () => {
   return (
     <section className="bg-[#F9F7F2] py-20 md:py-32 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
         
-        {/* Product Image */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -225,19 +299,15 @@ const ProductShowcase = () => {
           transition={{ duration: 0.8 }}
           className="relative flex justify-center order-1 md:order-2"
         >
-          {/* Decorative Circle */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-white rounded-full mix-blend-multiply filter blur-3xl opacity-70" />
-          
-          {/* Product Image - use placeholders if image not loaded */}
           <img 
             src={IMAGES.product}
-            onError={(e) => {e.target.src = "/api/placeholder/600/800"}} // Fallback
+            onError={(e) => {e.target.src = "/api/placeholder/600/800"}} 
             alt="Parosa 10kg Premium Wheat Pack" 
             className="relative z-10 w-full max-w-[300px] md:max-w-md h-auto drop-shadow-2xl -rotate-3 hover:rotate-0 transition-transform duration-700"
           />
         </motion.div>
 
-        {/* Product Details */}
         <motion.div 
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -257,7 +327,6 @@ const ProductShowcase = () => {
             Atta remains as fresh as the day it was stone-ground.
           </p>
 
-          {/* Specs Grid */}
           <div className="grid grid-cols-2 gap-y-8 gap-x-4 border-t border-[#E6E2DD] pt-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[#B08968]">
@@ -298,17 +367,15 @@ const ProductShowcase = () => {
   );
 };
 
-// 6. MEMBERSHIP SECTION (Updated with ID and Alert)
-const MembershipSection = () => {
+// 7. MEMBERSHIP SECTION (Updated to open Modal)
+const MembershipSection = ({ onOpenModal }) => {
   const totalSpots = 100;
   const takenSpots = 20;
 
   return (
-    // ADDED ID HERE FOR SCROLL TARGET
     <section id="apply" className="bg-[#2C2420] text-[#F9F7F2] py-20 md:py-32 px-6">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12 md:gap-16 items-center">
         
-        {/* Left: The Logic */}
         <div className="flex-1 space-y-6 md:space-y-8 w-full">
           <div className="flex items-center gap-2 text-[#B08968]">
             <Lock size={16} className="md:w-5 md:h-5" />
@@ -344,7 +411,6 @@ const MembershipSection = () => {
           </div>
         </div>
 
-        {/* Right: The Card */}
         <motion.div 
           whileHover={{ y: -5 }}
           className="flex-1 w-full max-w-md bg-[#F9F7F2] text-[#2C2420] p-8 md:p-14 shadow-2xl relative mt-4 md:mt-0"
@@ -371,9 +437,8 @@ const MembershipSection = () => {
             ))}
           </ul>
 
-          {/* UPDATED BUTTON WITH ALERT LOGIC */}
           <button 
-            onClick={handleApply}
+            onClick={onOpenModal}
             className="w-full bg-[#2C2420] text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-[#4a3e36] transition-all cursor-pointer"
           >
             Apply for Membership
@@ -389,7 +454,7 @@ const MembershipSection = () => {
   );
 };
 
-// 7. FOOTER / TRUST
+// 8. FOOTER / TRUST
 const FooterTrust = () => {
   return (
     <div className="bg-[#E6E2DD] py-8 md:py-12 border-t border-[#d6d2cd]">
@@ -407,6 +472,8 @@ const FooterTrust = () => {
 
 /* --- MAIN PAGE LAYOUT --- */
 const OrganicProductPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="font-sans antialiased selection:bg-[#B08968] selection:text-white">
       <ProgressBar />
@@ -430,10 +497,13 @@ const OrganicProductPage = () => {
         <HeroSection />
         <StorySection />
         <ProcessSection />
-        <ProductShowcase /> {/* NEW SECTION ADDED */}
-        <MembershipSection />
+        <ProductShowcase />
+        <MembershipSection onOpenModal={() => setIsModalOpen(true)} />
         <FooterTrust />
       </main>
+
+      {/* MODAL IS PLACED HERE */}
+      <ApplicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
