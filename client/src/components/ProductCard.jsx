@@ -8,11 +8,6 @@ const ProductCard = ({ product }) => {
   
   const { addToCart } = useCart();
 
-  // 🔥 TEMPORARY FILTER: ONLY SHOW MUSTARD OIL
-  if (!name || !name.toLowerCase().includes("mustard")) {
-    return null;
-  }
-
   // 1. Determine Display Data (Default to first variant)
   // ⚠️ NOTE: This card will ALWAYS display/add the FIRST variant (e.g., 500g).
   // To add 1L, the user must click the image to go to the Product Details Page.
@@ -38,7 +33,7 @@ const ProductCard = ({ product }) => {
       name: name,
       price: displayPrice,
       image: image,
-      variant: displayWeight, // Adds the default variant (500g)
+      variant: displayWeight, // Adds the default variant (e.g. 500g)
       quantity: 1
     });
   };

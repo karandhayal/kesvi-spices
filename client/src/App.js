@@ -23,6 +23,7 @@ import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import StoreFinder from './pages/StoreFinder';
 import OrganicAtta from './pages/organic';
+import WheatIngredient from './pages/WheatIngredient';
 import OrderHistory from './pages/OrderHistory'; // <--- ADDED THIS
 
 // 3. Import Context Providers
@@ -70,6 +71,7 @@ const AppContent = () => {
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/store-finder" element={<StoreFinder />} />
           <Route path="/organic-atta" element={<OrganicAtta />} />
+          <Route path="/wheat-ingredients" element={<WheatIngredient />} />
           <Route path="/orders" element={<OrderHistory />} /> {/* <--- ADDED THIS */}
         </Routes>
       </main>
