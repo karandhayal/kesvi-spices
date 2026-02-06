@@ -6,8 +6,6 @@ import ProductCard from '../components/ProductCard';
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // We can keep this state, but we will ignore it for now to force Mustard Oil view
   const [activeCategory, setActiveCategory] = useState('All'); 
 
   // Fetch Data on Load
@@ -25,11 +23,10 @@ const Home = () => {
     fetchProducts();
   }, []);
   
-  // 🔥 UPDATED FILTER LOGIC: FORCE MUSTARD OIL ONLY
-  const filteredProducts = products.filter(p => 
-    (p.category === 'Mustard Oil') || 
-    (p.name && p.name.toLowerCase().includes('mustard'))
-  );
+  // ✅ UPDATED FILTER LOGIC: Dynamic based on selection
+  const filteredProducts = activeCategory === 'All' 
+    ? products 
+    : products.filter(p => p.category === activeCategory);
 
   const categories = ['All', 'Wheat Flour', 'Spices', 'Mustard Oil', 'Graded Wheat', 'Animal Feed'];
 
@@ -41,7 +38,7 @@ const Home = () => {
            style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
       </div>
 
-      {/* 🔥 NEW: OFFER STRIP (Fixed at top or just below nav depending on layout) */}
+      {/* OFFER STRIP */}
       <div className="bg-red-700 text-white py-2 px-4 text-center relative z-50 shadow-sm">
         <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest flex justify-center items-center gap-2">
           🚚 Free Shipping on orders above ₹399
@@ -104,8 +101,8 @@ const Home = () => {
       <section className="bg-white py-12 md:py-16 border-b border-stone-200 relative z-10">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
           {[
-            { icon: "🌾", title: "Shuddh Kachhi Ghani", desc: "From Rajasthan" },
-            { icon: "☀️", title: "Rajasthan Origin", desc: "Sourced from Ganganagar" },
+            { icon: "🌾", title: "Shuddh Desi", desc: "From Rajasthan" },
+            { icon: "☀️", title: "Farm Origin", desc: "Sourced from Best Places" },
             { icon: "🚫", title: "Zero Chemicals", desc: "No Preservatives" },
             { icon: "🤝", title: "Farmer Connect", desc: "Direct from Source" }
           ].map((item, i) => (
@@ -124,9 +121,26 @@ const Home = () => {
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16 relative z-10">
         <div className="mb-8 md:mb-12 text-center">
           <span className="text-amber-600 text-[10px] md:text-xs font-bold tracking-widest uppercase block mb-1">From Our Farms</span>
-          <h2 className="text-2xl md:text-5xl font-serif text-stone-900 capitalize">
-            Mustard Oil <span className="italic font-light text-stone-500">Collection</span>
+          <h2 className="text-2xl md:text-5xl font-serif text-stone-900 capitalize mb-8">
+            {activeCategory === 'All' ? 'Our Best' : activeCategory} <span className="italic font-light text-stone-500">Collection</span>
           </h2>
+
+          {/* CATEGORY TABS */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`text-[10px] uppercase tracking-widest font-bold pb-1 border-b-2 transition-colors ${
+                  activeCategory === cat 
+                    ? 'text-amber-800 border-amber-800' 
+                    : 'text-stone-400 border-transparent hover:text-stone-600'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -135,12 +149,18 @@ const Home = () => {
            </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-10">
-            {filteredProducts.map((product) => (
-              <ProductCard 
-                key={product._id} 
-                product={product} 
-              />
-            ))}
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
+                <ProductCard 
+                  key={product._id} 
+                  product={product} 
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-10 text-stone-400 italic font-serif">
+                No products found in this category.
+              </div>
+            )}
           </div>
         )}
       </section>

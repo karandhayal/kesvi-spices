@@ -39,6 +39,7 @@ const Shop = () => {
     return filtered;
   }, [products, filter, sort]);
 
+  // Ensure these match your database category names exactly
   const categories = ['All', 'Wheat Flour', 'Spices', 'Mustard Oil', 'Graded Wheat', 'Animal Feed'];
 
   if (loading) {
@@ -58,18 +59,19 @@ const Shop = () => {
       </header>
 
       {/* ======================================================
-         🔥 STICKY FILTER BAR (TEMPORARILY HIDDEN)
-      ======================================================
-      
+          ✅ STICKY FILTER BAR (RESTORED)
+      ====================================================== */}
       <div className="sticky top-[72px] md:top-[88px] z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 md:px-12 py-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          
+          {/* Categories */}
           <div className="flex gap-6 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
                 className={`text-[10px] uppercase tracking-widest font-bold whitespace-nowrap transition-all ${
-                  filter === cat ? 'text-parosa-red' : 'text-gray-400 hover:text-parosa-dark'
+                  filter === cat ? 'text-parosa-red border-b-2 border-parosa-red' : 'text-gray-400 hover:text-parosa-dark'
                 }`}
               >
                 {cat}
@@ -77,6 +79,7 @@ const Shop = () => {
             ))}
           </div>
 
+          {/* Sort Dropdown */}
           <div className="flex items-center gap-2 self-end md:self-auto">
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Sort:</span>
             <select 
@@ -91,12 +94,10 @@ const Shop = () => {
           </div>
         </div>
       </div>
-      */}
 
       <main className="max-w-7xl mx-auto px-4 md:px-12 py-12">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-10">
           {processedProducts.map((product) => (
-            // UPDATED: Passing the full object
             <ProductCard 
               key={product._id} 
               product={product} 
@@ -106,7 +107,13 @@ const Shop = () => {
 
         {processedProducts.length === 0 && (
           <div className="py-24 text-center">
-            <p className="font-serif text-gray-400 italic">No products found.</p>
+            <p className="font-serif text-gray-400 italic">No products found in this category.</p>
+            <button 
+              onClick={() => setFilter('All')}
+              className="mt-4 text-xs font-bold underline text-parosa-dark"
+            >
+              View All Products
+            </button>
           </div>
         )}
       </main>
