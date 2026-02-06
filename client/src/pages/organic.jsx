@@ -79,17 +79,14 @@ const ApplicationModal = ({ isOpen, onClose }) => {
                   <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Full Name</label>
                   <input required type="text" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="Enter your name" />
                 </div>
-                
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Email Address</label>
-                  <input required type="email" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="email@address.com" />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Phone (Optional)</label>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Phone</label>
                   <input type="tel" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="+91 ..." />
                 </div>
-
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Address</label>
+                  <input required type="text" className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" placeholder="Sri Ganganagar, Rajasthan" />
+                </div>
                 <button type="submit" className="w-full bg-[#2C2420] text-white py-4 mt-4 uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#4a3e36] transition-all">
                   Submit Request
                 </button>
@@ -227,7 +224,7 @@ const StorySection = () => {
               We rejected this model entirely.
             </p>
             <p>
-              We partnered with <strong>Ram Narayan</strong>, a third-generation organic farmer who treats his soil like a living entity. 
+              We partnered with <strong>organic farmer</strong> who treats his soil like a living entity. 
               No pesticides. No middlemen. Just golden wheat, harvested at peak nutrition.
             </p>
             <div className="flex items-center gap-4 pt-4">
@@ -269,7 +266,7 @@ const ProcessSection = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12 md:mb-20">
           <span className="uppercase tracking-[0.2em] text-[10px] md:text-xs text-gray-400 mb-2 block">The Journey</span>
-          <h2 className="text-3xl md:text-4xl font-serif text-[#2C2420]">From Soil to Seal</h2>
+          <h2 className="text-3xl md:text-4xl font-serif text-[#2C2420]">From Soil to Kitchen</h2>
         </div>
 
         <div className="relative flex flex-col md:flex-row justify-between items-start gap-12 md:gap-4 ml-2 md:ml-0">
@@ -341,7 +338,7 @@ const ProductShowcase = () => {
                 <MapPin size={18} />
                 <span className="text-xs uppercase tracking-wider font-bold">Origin</span>
               </div>
-              <span className="text-xl font-serif text-[#2C2420]">Sehore, MP</span>
+              <span className="text-xl font-serif text-[#2C2420]">Rajasthan</span>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -349,7 +346,7 @@ const ProductShowcase = () => {
                 <Wheat size={18} />
                 <span className="text-xs uppercase tracking-wider font-bold">Variety</span>
               </div>
-              <span className="text-xl font-serif text-[#2C2420]">Sharbati 306</span>
+              <span className="text-xl font-serif text-[#2C2420]">1482</span>
             </div>
 
             <div className="flex flex-col gap-2">
