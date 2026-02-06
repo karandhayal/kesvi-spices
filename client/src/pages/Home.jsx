@@ -35,7 +35,7 @@ const Home = () => {
       
       {/* --- RAJASTHANI BACKGROUND PATTERN --- */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" 
-           style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
+           style={{ backgroundImage: `url("https://t4.ftcdn.net/jpg/12/50/32/05/360_F_1250320539_mSBEKgn75R0ITYmIU0euFdPaWRw8tsnO.jpg")` }}>
       </div>
 
       {/* OFFER STRIP */}
@@ -61,17 +61,13 @@ const Home = () => {
           <div className="w-16 md:w-24 h-1 bg-amber-500 mx-auto mb-4 md:mb-6 rounded-full"></div>
 
           <span className="text-amber-300 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-sm font-bold mb-3 md:mb-4 block drop-shadow-md">
-            The Soul of Rajasthan
+            Rajasthan ki Shan
           </span>
           
           <h1 className="text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-tight drop-shadow-lg">
             Unadulterated. <br/>
             <span className="text-amber-100 italic font-light">Purest Quality.</span>
           </h1>
-          
-          <p className="text-stone-200 text-xs md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 px-2 leading-relaxed font-light">
-            Bringing the golden harvest of <strong>Rajasthan</strong> to your kitchen. 
-          </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
             <Link to="/shop" className="w-full sm:w-auto">

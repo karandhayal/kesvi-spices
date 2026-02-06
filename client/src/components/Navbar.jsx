@@ -31,7 +31,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Shop All', path: '/shop' },
     { name: 'Distributor', path: '/distributor' },
-    { name: 'Mustard Oil', path: '/shop?cat=mustard-oil' },
+    { name: 'Organic Atta', path: '/organic-atta' },
     { name: 'Our Story', path: '/about' },
   ];
 
@@ -55,7 +55,7 @@ const Navbar = () => {
             PAROSA
           </span>
           <span className="text-[7px] md:text-[8px] uppercase tracking-[0.4em] text-parosa-accent font-bold">
-            Purity Personified
+            Parosa ka Bharosa
           </span>
         </Link>
 
