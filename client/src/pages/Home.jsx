@@ -35,7 +35,7 @@ const Home = () => {
       
       {/* --- RAJASTHANI BACKGROUND PATTERN --- */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" 
-           style={{ backgroundImage: `url("https://t4.ftcdn.net/jpg/12/50/32/05/360_F_1250320539_mSBEKgn75R0ITYmIU0euFdPaWRw8tsnO.jpg")` }}>
+           style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/arabesque.png")` }}>
       </div>
 
       {/* OFFER STRIP */}
@@ -50,7 +50,7 @@ const Home = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="/mustardfield.png" 
+            src="/farmer-background.jpg" 
             alt="Rajasthan Fields" 
             className="w-full h-full object-cover opacity-100"
           />

@@ -112,38 +112,8 @@ const products = [
     ]
   },
   {
-    name: "Cold Pressed Mustard Oil 200ML",
-    slug: "mustard-oil-200",
-    category: "Mustard Oil",
-    tag: "Kachi Ghani",
-    image: "/products/mustard.png",
-    benefits: "Cold Pressed • High Pungency • Heart Healthy",
-    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 82,
-    originalPrice: 130,
-    countInStock: 30,
-    variants: [
-      { weight: "200ML", price: 82, originalPrice: 130 }
-    ]
-  },
-  {
-    name: "Cold Pressed Mustard Oil 500ML",
-    slug: "mustard-oil-500",
-    category: "Mustard Oil",
-    tag: "Kachi Ghani",
-    image: "/products/mustard.png",
-    benefits: "Cold Pressed • High Pungency • Heart Healthy",
-    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 150,
-    originalPrice: 200,
-    countInStock: 30,
-    variants: [
-      { weight: "500ML", price: 150, originalPrice: 200 },
-    ]
-  },
-  {
-    name: "Cold Pressed Mustard Oil 1L",
-    slug: "mustard-oil-1000",
+    name: "Cold Pressed Mustard Oil",
+    slug: "mustard-oil-bottle",
     category: "Mustard Oil",
     tag: "Kachi Ghani",
     image: "/products/mustard1.png",
@@ -153,22 +123,10 @@ const products = [
     originalPrice: 347,
     countInStock: 30,
     variants: [
-      { weight: "1L", price: 270, originalPrice: 347 }
-    ]
-  },
-  {
-    name: "Cold Pressed Mustard Oil 2L",
-    slug: "mustard-oil-2000",
-    category: "Mustard Oil",
-    tag: "Kachi Ghani",
-    image: "/products/mustard.png",
-    benefits: "Cold Pressed • High Pungency • Heart Healthy",
-    description: "Extracted using traditional wood-pressed (Kachi Ghani) method. Unrefined, unbleached, and full of natural antioxidants and strong aroma.",
-    price: 499,
-    originalPrice: 700,
-    countInStock: 30,
-    variants: [
-      { weight: "2L", price: 499, originalPrice: 700 }
+      { weight: "1L", price: 270, originalPrice: 347 },
+      { weight: "200ML", price: 270, originalPrice: 347 },
+      { weight: "500ML", price: 270, originalPrice: 347 },
+      { weight: "2L", price: 270, originalPrice: 347 }
     ]
   },
   {
