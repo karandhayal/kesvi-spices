@@ -19,7 +19,7 @@ import {
 const IMAGES = {
   hero: "/hero-organic-2.jpg", 
   farmer: "/farmer-soil.png", 
-  product: "/product-pack.jpg",
+  product: "/product-pack.png",
   wheat: "/api/placeholder/800/600"
 };
 
