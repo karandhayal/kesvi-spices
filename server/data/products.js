@@ -32,38 +32,6 @@ const products = [
     ]
   },
   {
-    name: "Jodhpur Red Chilli Powder",
-    slug: "jodhpuri-chilli-powder",
-    category: "Spices",
-    tag: "Vibrant Color",
-    image: "/products/jodhpuri-chilli.png",
-    benefits: "Rich Color • Low Heat • 100% Natural",
-    description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 120,
-    originalPrice: 160,
-    countInStock: 50,
-    variants: [
-      { weight: "250g", price: 120, originalPrice: 160 },
-      { weight: "500g", price: 230, originalPrice: 320 }
-    ]
-  },
-  {
-    name: "Teja Red Chilli Powder",
-    slug: "teja-chilli-powder",
-    category: "Spices",
-    tag: "Vibrant Color",
-    image: "/products/teja-chilli.jpg",
-    benefits: "Rich Color • Low Heat • 100% Natural",
-    description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 120,
-    originalPrice: 160,
-    countInStock: 50,
-    variants: [
-      { weight: "250g", price: 120, originalPrice: 160 },
-      { weight: "500g", price: 230, originalPrice: 320 }
-    ]
-  },
-  {
     name: "Coriander Powder (Dhaniya)",
     slug: "coriander-powder",
     category: "Spices",
