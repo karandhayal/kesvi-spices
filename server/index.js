@@ -3,10 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const mongoose = require("mongoose"); // ✅ Added mongoose requirement
 const connectDB = require("./db");
 
 const app = express();
 const storeRoute = require('./routes/store');
+
 /* ================================
    1. CORS CONFIG (VERY IMPORTANT)
 ================================ */
@@ -62,6 +64,22 @@ app.use(express.json());
 
 connectDB();
 
+/* ==========================================
+   ✅ NEW: MEMBERSHIP REQUEST MODEL & SCHEMA
+   (Defined here for quick integration)
+========================================== */
+const membershipRequestSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  phone: { type: String, required: true },
+  address: { type: String, required: true },
+  isApproved: { type: Boolean, default: false },
+}, { 
+  timestamps: true 
+});
+
+// Check if model exists to prevent overwrite error during hot reloads
+const MembershipRequest = mongoose.models.MembershipRequest || mongoose.model('MembershipRequest', membershipRequestSchema);
+
 /* ================================
    4. HEALTH CHECK
 ================================ */
@@ -96,6 +114,46 @@ app.use("/api/orders", require("./routes/order"));
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/shipping", require("./routes/shipping"));
 app.use('/api/stores', storeRoute);
+
+/* ==========================================
+   ✅ NEW: MEMBERSHIP REQUEST ROUTES
+========================================== */
+
+// 1. POST: Create a new request (For the User Form)
+app.post('/api/membership-requests', async (req, res) => {
+  try {
+    const { fullName, phone, address } = req.body;
+    
+    if (!fullName || !phone || !address) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const newRequest = new MembershipRequest({
+      fullName,
+      phone,
+      address
+    });
+
+    const savedRequest = await newRequest.save();
+    res.status(201).json(savedRequest);
+  } catch (error) {
+    console.error("Error creating membership request:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// 2. GET: Fetch all requests (For the Admin Dashboard)
+app.get('/api/membership-requests', async (req, res) => {
+  try {
+    // Sort by newest first
+    const requests = await MembershipRequest.find({}).sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
 /* ================================
    7. GLOBAL ERROR HANDLER
 ================================ */
