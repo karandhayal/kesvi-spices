@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
-  Search, Truck, RefreshCw, ArrowUpRight, Save, Eye, X, AlertTriangle
+  Search, Truck, RefreshCw, ArrowUpRight, Save, Eye, X, AlertTriangle, Users
 } from 'lucide-react';
 
 // ✅ BASE URL
@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard'); 
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [requests, setRequests] = useState([]); // ✅ NEW: Requests State
   const [loading, setLoading] = useState(true);
   const [orderTab, setOrderTab] = useState('All'); 
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,12 +29,15 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [ordersRes, productsRes] = await Promise.all([
+      // ✅ ADDED REQUESTS FETCH
+      const [ordersRes, productsRes, requestsRes] = await Promise.all([
         axios.get(`${BASE_URL}/orders/all`),
-        axios.get(`${BASE_URL}/products`) 
+        axios.get(`${BASE_URL}/products`),
+        axios.get(`${BASE_URL}/membership-requests`).catch(() => ({ data: [] })) // Handle potential missing endpoint
       ]);
       setOrders(ordersRes.data);
       setProducts(productsRes.data);
+      setRequests(requestsRes.data || []);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching admin data:", err);
@@ -84,7 +88,6 @@ const AdminDashboard = () => {
   const stats = useMemo(() => {
     if (!Array.isArray(orders)) return { totalRevenue: 0, totalOrders: 0, pendingOrders: 0, lowStockItems: 0, topProducts: [] };
 
-    // ✅ FIX 1: Use 'amount' (from Schema) instead of 'totalPrice'
     const totalRevenue = orders.reduce((acc, o) => {
         if (o.status !== 'Cancelled') {
             return acc + (o.amount || 0); 
@@ -117,7 +120,6 @@ const AdminDashboard = () => {
   const filteredOrders = orders.filter(order => {
     const matchesTab = orderTab === 'All' || order.status === orderTab;
     
-    // ✅ FIX 2: Use 'address' (from Schema) instead of 'shippingAddress'
     const name = order.address?.fullName || '';
     const phone = order.address?.phone || '';
     const id = order._id || '';
@@ -163,6 +165,14 @@ const AdminDashboard = () => {
             active={activeSection === 'inventory'} 
             onClick={() => setActiveSection('inventory')} 
             alert={stats.lowStockItems > 0}
+          />
+          {/* ✅ NEW: REQUESTS SIDEBAR ITEM */}
+          <SidebarItem 
+            icon={<Users size={20} />} 
+            label="Requests" 
+            active={activeSection === 'requests'} 
+            onClick={() => setActiveSection('requests')} 
+            badge={requests.length > 0 ? requests.length : null}
           />
           <SidebarItem 
             icon={<BarChart3 size={20} />} 
@@ -240,7 +250,6 @@ const AdminDashboard = () => {
                           )}
                         </td>
                         <td className="p-4">
-                           {/* ✅ FIX 3: Use 'address' */}
                            <div className="font-medium">{order.address?.fullName}</div>
                            <div className="text-xs text-gray-500">{order.address?.phone}</div>
                         </td>
@@ -250,7 +259,6 @@ const AdminDashboard = () => {
                           ))}
                           {items.length > 2 && <div className="text-gray-400 italic">+{items.length - 2} more...</div>}
                         </td>
-                        {/* ✅ FIX 4: Use 'amount' */}
                         <td className="p-4 font-bold text-gray-700">₹{order.amount}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
@@ -358,6 +366,46 @@ const AdminDashboard = () => {
              </div>
           )}
 
+          {/* --- ✅ NEW VIEW: REQUESTS --- */}
+          {activeSection === 'requests' && (
+             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+               <div className="p-6 border-b flex justify-between items-center">
+                 <h3 className="font-bold text-gray-700">Membership Requests</h3>
+                 <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{requests.length} Total</span>
+               </div>
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left text-sm">
+                   <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold">
+                     <tr>
+                       <th className="p-4">Name</th>
+                       <th className="p-4">Phone</th>
+                       <th className="p-4">Address</th>
+                       <th className="p-4">Date</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-gray-100">
+                     {requests.length > 0 ? requests.map((req, idx) => (
+                       <tr key={idx} className="hover:bg-gray-50">
+                         <td className="p-4 font-medium text-gray-800">{req.fullName}</td>
+                         <td className="p-4 text-gray-600">{req.phone}</td>
+                         <td className="p-4 text-gray-600 max-w-xs truncate">{req.address}</td>
+                         <td className="p-4 text-gray-500 text-xs">
+                           {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}
+                         </td>
+                       </tr>
+                     )) : (
+                       <tr>
+                         <td colSpan="4" className="p-8 text-center text-gray-400">
+                           No membership requests found.
+                         </td>
+                       </tr>
+                     )}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          )}
+
           {/* --- VIEW: DASHBOARD (Stats) --- */}
           {activeSection === 'dashboard' && (
             <div className="space-y-8">
@@ -365,7 +413,7 @@ const AdminDashboard = () => {
                 <StatCard title="Total Revenue" value={`₹${stats.totalRevenue.toLocaleString()}`} color="blue" />
                 <StatCard title="Total Orders" value={stats.totalOrders} color="purple" />
                 <StatCard title="Pending" value={stats.pendingOrders} color="orange" />
-                <StatCard title="Low Stock" value={stats.lowStockItems} color="red" />
+                <StatCard title="Requests" value={requests.length} color="red" />
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 max-w-lg">
                    <h3 className="font-bold text-gray-700 mb-4">Top Selling Products</h3>
@@ -429,7 +477,6 @@ const AdminDashboard = () => {
                  </div>
                  <div className="text-right">
                     <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Total Amount</span>
-                    {/* ✅ FIX 5: Use 'amount' */}
                     <p className="text-xl font-bold text-blue-900">₹{selectedOrder.amount}</p>
                  </div>
               </div>
@@ -438,7 +485,6 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Customer Details</h4>
-                    {/* ✅ FIX 6: Use 'address' */}
                     <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.address?.fullName}</p>
                     <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.address?.email || 'N/A'}</p>
                     <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.address?.phone}</p>
@@ -446,7 +492,6 @@ const AdminDashboard = () => {
                  <div className="space-y-2">
                     <h4 className="font-bold text-gray-700 border-b pb-1">Shipping Address</h4>
                     <p className="text-sm text-gray-600">
-                      {/* ✅ FIX 7: Use 'address' */}
                       {selectedOrder.address?.street}<br/>
                       {selectedOrder.address?.city}, {selectedOrder.address?.state}<br/>
                       {selectedOrder.address?.country} - <strong>{selectedOrder.address?.pincode}</strong>
