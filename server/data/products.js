@@ -7,12 +7,14 @@ const products = [
     image: "/products/turmeric.png", // Matches client/public/products/turmeric.jpg
     benefits: "High Curcumin Content • Immunity Booster",
     description: "Our Turmeric is sourced from the finest farms in Salem. Stone-ground to preserve natural oils and the potent active compound Curcumin. No artificial colors, just pure golden goodness.",
-    price: 165, 
-    originalPrice: 250,
+    price: 345, 
+    originalPrice: 460,
     countInStock: 50,
     variants: [
-      { weight: "500g", price: 165, originalPrice: 250 },
-      { weight: "250g", price: 90, originalPrice: 130 }
+      { weight: "500g", price: 174, originalPrice: 232 },
+      { weight: "100g", price: 35, originalPrice: 47 },
+      { weight: "200g", price: 70, originalPrice: 94 },
+      { weight: "1KG", price: 345, originalPrice: 460 }
     ]
   },
   {
@@ -23,12 +25,14 @@ const products = [
     image: "/products/chilli.png",
     benefits: "Rich Color • Low Heat • 100% Natural",
     description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 174,
-    originalPrice: 275,
+    price: 169,
+    originalPrice: 230,
     countInStock: 50,
     variants: [
-      { weight: "500g", price: 174, originalPrice: 275 },
-      { weight: "250g", price: 93, originalPrice: 140 }
+      { weight: "500g", price: 169, originalPrice: 230 },
+      { weight: "100g", price: 35, originalPrice: 47 },
+      { weight: "200g", price: 69, originalPrice: 92 },
+      { weight: "1KG", price: 332, originalPrice: 443 }
     ]
   },
   {
@@ -43,8 +47,10 @@ const products = [
     originalPrice: 150,
     countInStock: 50,
     variants: [
-      { weight: "500g", price: 102, originalPrice: 150 },
-      { weight: "250g", price: 80, originalPrice: 110 }
+      { weight: "500g", price: 174, originalPrice: 232 },
+      { weight: "100g", price: 35, originalPrice: 47 },
+      { weight: "200g", price: 70, originalPrice: 94 },
+      { weight: "1KG", price: 345, originalPrice: 460 }
     ]
   },
   {
@@ -150,12 +156,15 @@ const products = [
     image: "/products/jodhpuri-chilli.png",
     benefits: "Rich Color • Low Heat • 100% Natural",
     description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 120,
-    originalPrice: 160,
+    price: 190,
+    originalPrice: 280,
     countInStock: 50,
     variants: [
-      { weight: "250g", price: 120, originalPrice: 160 },
-      { weight: "500g", price: 230, originalPrice: 320 }
+      { weight: "500g", price: 190, originalPrice: 280 },
+      { weight: "1KG", price: 378, originalPrice: 550 },
+      { weight: "100g", price: 42, originalPrice: 55 },
+      { weight: "200g", price: 80, originalPrice: 115 },
+      { weight: "1KG", price: 378, originalPrice: 550 }
     ]
   },
   {
@@ -163,15 +172,17 @@ const products = [
     slug: "teja-chilli-powder",
     category: "Spices",
     tag: "Vibrant Color",
-    image: "/products/teja-chilli.jpg",
+    image: "/products/teja-chilli.png",
     benefits: "Rich Color • Low Heat • 100% Natural",
     description: "Hand-picked Kashmiri chillies known for their deep red color and mild heat. Perfect for adding a rich hue to your curries without overwhelming spice levels.",
-    price: 120,
-    originalPrice: 160,
+    price: 185,
+    originalPrice: 256,
     countInStock: 50,
     variants: [
-      { weight: "250g", price: 120, originalPrice: 160 },
-      { weight: "500g", price: 230, originalPrice: 320 }
+      { weight: "500g", price: 185, originalPrice: 256 },
+      { weight: "100g", price: 40, originalPrice: 50 },
+      { weight: "200g", price: 75, originalPrice: 105 },
+      { weight: "1KG", price: 368, originalPrice: 491 }
     ]
   }
 ];
