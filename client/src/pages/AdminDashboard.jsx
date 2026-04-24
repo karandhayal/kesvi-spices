@@ -153,19 +153,23 @@ const AdminDashboard = () => {
     return matchesTab && matchesSearch;
   });
 
+  if (!token || !isAdminUser) {
+    return (
+      <main
+        role="main"
+        aria-label="Admin access denied"
+        className="flex items-center justify-center h-screen bg-gray-50 text-gray-600 font-medium"
+      >
+        Access denied. You must be logged in as an administrator to view this page.
+      </main>
+    );
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center h-screen bg-gray-50 text-gray-500 font-medium">
       <RefreshCw className="animate-spin mr-2" /> Loading Admin Panel...
     </div>
   );
-
-  if (!token || !isAdminUser) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 text-gray-600 font-medium">
-        Unauthorized access.
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans relative">

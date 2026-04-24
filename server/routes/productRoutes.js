@@ -40,9 +40,20 @@ router.get('/:slug', async (req, res) => {
 // @access  Admin
 router.put('/:id', protect, adminOnly, async (req, res) => {
   try {
+    const { countInStock } = req.body;
+    const parsedStock = Number(countInStock);
+
+    if (!Number.isInteger(parsedStock)) {
+      return res.status(400).json({ message: 'countInStock must be an integer' });
+    }
+
+    if (parsedStock < 0) {
+      return res.status(400).json({ message: 'countInStock must be a non-negative integer' });
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: { countInStock: parsedStock } },
       { new: true }
     );
 
