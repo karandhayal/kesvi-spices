@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
 
 // 1. Import Components
@@ -28,7 +28,7 @@ import OrderHistory from './pages/OrderHistory'; // <--- ADDED THIS
 
 // 3. Import Context Providers
 import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext'; 
+import { AuthProvider, useAuth } from './context/AuthContext'; 
 
 // --- GLOBAL API CONFIGURATION ---
 // STEP A: Uncomment "localhost" when working on your computer
@@ -41,6 +41,15 @@ axios.defaults.withCredentials = true;
 
 // --- HELPER COMPONENT FOR LAYOUT LOGIC ---
 // This component sits inside the Router, so useLocation works here
+const ProtectedAdminRoute = ({ children }) => {
+  const { user } = useAuth();
+  const isAdmin = user && (user.role === 'admin' || user.isAdmin === true);
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return children;
+};
+
 const AppContent = () => {
   const location = useLocation();
 
@@ -62,7 +71,7 @@ const AppContent = () => {
           <Route path="/distributor" element={<Distributor />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
           <Route path="/privacypolicy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/product/:slug" element={<ProductDetails />} />

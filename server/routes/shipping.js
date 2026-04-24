@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const Order = require('../models/Order');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 // --- CONFIGURATION ---
 const SR_EMAIL = process.env.SR_EMAIL;
@@ -24,7 +25,7 @@ const getShiprocketToken = async () => {
 // ==========================================
 // 1. PUSH ORDER TO SHIPROCKET
 // ==========================================
-router.post('/create-order/:id', async (req, res) => {
+router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
     try {
         const orderId = req.params.id;
         const order = await Order.findById(orderId);

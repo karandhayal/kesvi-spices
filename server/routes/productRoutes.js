@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -31,6 +32,28 @@ router.get('/:slug', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error: Unable to fetch product' });
+  }
+});
+
+// @desc    Update product stock
+// @route   PUT /api/products/:id
+// @access  Admin
+router.put('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error: Unable to update product' });
   }
 });
 

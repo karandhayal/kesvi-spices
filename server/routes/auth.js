@@ -98,7 +98,10 @@ router.post('/verify-mobile-otp', async (req, res) => {
     await user.save();
 
     // Create Token
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, isAdmin: user.isAdmin, role: user.role || (user.isAdmin ? 'admin' : 'user') },
+      JWT_SECRET
+    );
     
     // Return User Data (excluding password)
     const { password, ...userData } = user._doc;
@@ -165,7 +168,10 @@ router.post('/verify-email', async (req, res) => {
     user.otp = undefined;
     await user.save();
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, isAdmin: user.isAdmin, role: user.role || (user.isAdmin ? 'admin' : 'user') },
+      JWT_SECRET
+    );
     const { password, ...others } = user._doc;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {
@@ -181,7 +187,10 @@ router.post('/login-email', async (req, res) => {
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) return res.status(400).json({ success: false, message: "Wrong password" });
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, isAdmin: user.isAdmin, role: user.role || (user.isAdmin ? 'admin' : 'user') },
+      JWT_SECRET
+    );
     const { password, ...others } = user._doc;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {

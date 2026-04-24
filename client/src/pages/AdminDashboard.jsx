@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
   Search, Truck, RefreshCw, ArrowUpRight, Save, Eye, X, AlertTriangle, Users
@@ -9,6 +10,10 @@ import {
 const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
+  const token = localStorage.getItem('parosa_token');
+  const isAdminUser = user && (user.role === 'admin' || user.isAdmin === true);
+
   // --- STATE ---
   const [activeSection, setActiveSection] = useState('dashboard'); 
   const [orders, setOrders] = useState([]);
@@ -21,19 +26,19 @@ const AdminDashboard = () => {
   // Modal State
   const [selectedOrder, setSelectedOrder] = useState(null); 
 
-  // --- INITIAL DATA FETCH ---
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       // ✅ ADDED REQUESTS FETCH
       const [ordersRes, productsRes, requestsRes] = await Promise.all([
-        axios.get(`${BASE_URL}/orders/all`),
+        axios.get(`${BASE_URL}/orders/all`, config),
         axios.get(`${BASE_URL}/products`),
-        axios.get(`${BASE_URL}/membership-requests`).catch(() => ({ data: [] })) // Handle potential missing endpoint
+        axios.get(`${BASE_URL}/membership-requests`, config).catch(() => ({ data: [] })) // Handle potential missing endpoint
       ]);
       setOrders(ordersRes.data);
       setProducts(productsRes.data);
@@ -43,13 +48,22 @@ const AdminDashboard = () => {
       console.error("Error fetching admin data:", err);
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  // --- INITIAL DATA FETCH ---
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // --- ACTIONS ---
   const handleShip = async (orderId) => {
     if (!window.confirm("Push this order to Shiprocket for pickup?")) return;
     try {
-      const res = await axios.post(`${BASE_URL}/shipping/create-order/${orderId}`);
+      const res = await axios.post(
+        `${BASE_URL}/shipping/create-order/${orderId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       if (res.data.success) {
         alert(`Success! Tracking ID: ${res.data.data.order_id}`);
         fetchData(); // Refresh to show AWB
@@ -61,7 +75,11 @@ const AdminDashboard = () => {
 
   const updateStatus = async (orderId, newStatus) => {
     try {
-      await axios.put(`${BASE_URL}/orders/${orderId}`, { status: newStatus });
+      await axios.put(
+        `${BASE_URL}/orders/${orderId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
       // Optimistic Update
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
@@ -76,7 +94,11 @@ const AdminDashboard = () => {
 
   const handleStockUpdate = async (id, newStock) => {
     try {
-      await axios.put(`${BASE_URL}/products/${id}`, { countInStock: newStock });
+      await axios.put(
+        `${BASE_URL}/products/${id}`,
+        { countInStock: newStock },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setProducts(prev => prev.map(p => p._id === id ? { ...p, countInStock: newStock } : p));
       alert("Stock updated!");
     } catch (err) {
@@ -136,6 +158,14 @@ const AdminDashboard = () => {
       <RefreshCw className="animate-spin mr-2" /> Loading Admin Panel...
     </div>
   );
+
+  if (!token || !isAdminUser) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50 text-gray-600 font-medium">
+        Unauthorized access.
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans relative">
