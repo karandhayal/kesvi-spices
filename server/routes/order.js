@@ -2,11 +2,12 @@ const router = require('express').Router();
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const Cart = require('../models/Cart');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 // ==========================================
 // 1. ADMIN ROUTE (Fetches all orders)
 // ==========================================
-router.get('/all', async (req, res) => {
+router.get('/all', protect, adminOnly, async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
         res.status(200).json(orders);
@@ -174,7 +175,7 @@ router.post('/create', async (req, res) => {
 // ==========================================
 // 4. UPDATE ORDER
 // ==========================================
-router.put("/:id", async (req, res) => {
+router.put("/:id", protect, adminOnly, async (req, res) => {
   try {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,

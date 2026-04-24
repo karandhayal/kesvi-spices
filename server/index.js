@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const mongoose = require("mongoose"); // ✅ Added mongoose requirement
 const connectDB = require("./db");
+const { protect, adminOnly } = require('./middleware/authMiddleware');
 
 const app = express();
 const storeRoute = require('./routes/store');
@@ -143,7 +144,7 @@ app.post('/api/membership-requests', async (req, res) => {
 });
 
 // 2. GET: Fetch all requests (For the Admin Dashboard)
-app.get('/api/membership-requests', async (req, res) => {
+app.get('/api/membership-requests', protect, adminOnly, async (req, res) => {
   try {
     // Sort by newest first
     const requests = await MembershipRequest.find({}).sort({ createdAt: -1 });

@@ -8,7 +8,20 @@ const axios = require('axios'); // Required for WhatsApp API
 // --- ENV VARIABLES (Add these to your .env) ---
 const WA_PHONE_ID = process.env.WA_PHONE_NUMBER_ID;
 const WA_TOKEN = process.env.WA_ACCESS_TOKEN;
-const JWT_SECRET = process.env.JWT_SECRET || "secret_key_123";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const generateAuthToken = (user) => {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
+  const resolvedRole = user.role === 'admin' || user.isAdmin === true ? 'admin' : 'user';
+
+  return jwt.sign(
+    { id: user._id, isAdmin: user.isAdmin, role: resolvedRole },
+    JWT_SECRET
+  );
+};
 
 // --- NODEMAILER CONFIG ---
 const transporter = nodemailer.createTransport({
@@ -98,7 +111,7 @@ router.post('/verify-mobile-otp', async (req, res) => {
     await user.save();
 
     // Create Token
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = generateAuthToken(user);
     
     // Return User Data (excluding password)
     const { password, ...userData } = user._doc;
@@ -165,7 +178,7 @@ router.post('/verify-email', async (req, res) => {
     user.otp = undefined;
     await user.save();
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = generateAuthToken(user);
     const { password, ...others } = user._doc;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {
@@ -181,7 +194,7 @@ router.post('/login-email', async (req, res) => {
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) return res.status(400).json({ success: false, message: "Wrong password" });
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, JWT_SECRET);
+    const token = generateAuthToken(user);
     const { password, ...others } = user._doc;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {
