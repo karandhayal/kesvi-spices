@@ -5,6 +5,7 @@ import axios from 'axios';
 // 1. Import Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 // 2. Import Pages
 import Home from './pages/Home';
@@ -67,6 +68,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-kesvi-bg font-sans selection:bg-kesvi-accent selection:text-white">
+      <ScrollToTop />
       {/* Only show Navbar if NOT on admin page */}
       {!isAdminRoute && <Navbar />}
 
