@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const Product = require('../models/Product');
+const Coupon = require('../models/Coupon');
+const mongoose = require('mongoose');
 
 // Initialize Razorpay Instance
 // Make sure these variables are in your backend .env file
@@ -14,17 +17,71 @@ const razorpay = new Razorpay({
 // ==========================================
 router.post('/create-order', async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { orderItems, couponCode, paymentMethod } = req.body;
 
-    // Validation
-    if (!amount) {
-      return res.status(400).json({ success: false, message: "Amount is required" });
+    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ success: false, message: "Order items are required" });
     }
+
+    let subtotal = 0;
+    for (const item of orderItems) {
+      const quantity = Number(item.quantity) || 0;
+      if (quantity <= 0) {
+        return res.status(400).json({ success: false, message: "Invalid quantity" });
+      }
+
+      const productId = item.productId || item.product || item._id || item.id;
+      let product = null;
+      if (productId && mongoose.isValidObjectId(productId)) {
+        product = await Product.findById(productId);
+      }
+
+      if (!product && item.slug) {
+        product = await Product.findOne({ slug: item.slug });
+      }
+
+      if (!product) {
+        return res.status(400).json({ success: false, message: "Product not found" });
+      }
+
+      let unitPrice = Number(product.price) || 0;
+      if (item.variant && Array.isArray(product.variants) && product.variants.length > 0) {
+        const matchedVariant = product.variants.find(v => v.weight === item.variant);
+        if (matchedVariant) {
+          if (matchedVariant.inStock === false) {
+            return res.status(400).json({ success: false, message: "Selected variant is out of stock" });
+          }
+          unitPrice = Number(matchedVariant.price) || unitPrice;
+        }
+      }
+
+      if (Number.isFinite(product.countInStock) && product.countInStock < quantity) {
+        return res.status(400).json({ success: false, message: "Insufficient stock" });
+      }
+
+      subtotal += unitPrice * quantity;
+    }
+
+    const safeSubtotal = Number(subtotal) || 0;
+    const shippingFee = safeSubtotal > 399 ? 0 : 60;
+    const codFee = paymentMethod === 'COD' ? 50 : 0;
+
+    let discount = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+      if (coupon && safeSubtotal >= coupon.minOrder) {
+        discount = coupon.type === 'percent'
+          ? (safeSubtotal * coupon.value) / 100
+          : coupon.value;
+      }
+    }
+
+    const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee + codFee - discount));
 
     // Razorpay expects amount in "Paise" (1 INR = 100 Paise)
     // We round it to handle decimal issues
     const options = {
-      amount: Math.round(amount * 100), 
+      amount: Math.round(finalAmount * 100), 
       currency: "INR",
       receipt: "receipt_" + Date.now(),
       payment_capture: 1 // Auto capture payment
@@ -37,7 +94,8 @@ router.post('/create-order', async (req, res) => {
       success: true,
       id: order.id,
       currency: order.currency,
-      amount: order.amount
+      amount: order.amount,
+      amountInRupees: finalAmount
     });
 
   } catch (error) {

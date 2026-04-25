@@ -90,11 +90,10 @@ const Checkout = () => {
         paymentMethod: paymentMethod === 'COD' ? 'COD' : 'ONLINE',
         // Pass Razorpay details to backend to save in DB
         paymentResult: paymentDetails, 
-        amount: finalTotal, // Matches schema
-        subtotal: cartTotal, // Matches schema
-        shippingFee: shippingFee,
         couponCode,
-        isPaid: paymentMethod === 'ONLINE'
+        razorpay_order_id: paymentDetails.razorpay_order_id,
+        razorpay_payment_id: paymentDetails.razorpay_payment_id,
+        razorpay_signature: paymentDetails.razorpay_signature
       };
 
       const res = await axios.post('/api/orders/create', orderPayload);
@@ -125,7 +124,9 @@ const Checkout = () => {
       // A. Create Order on Server (Razorpay API)
       // Ensure you have created this route in backend/routes/payment.js
       const { data: orderData } = await axios.post('/api/payment/create-order', { 
-        amount: finalTotal 
+        orderItems: cartItems,
+        couponCode,
+        paymentMethod: 'ONLINE'
       });
 
       if (!orderData.success) {
@@ -146,25 +147,16 @@ const Checkout = () => {
         // C. Handler: What happens on Success
         handler: async function (response) {
           try {
-            // Verify Payment Signature on Backend
-            const verifyRes = await axios.post('/api/payment/verify-payment', {
+            // Create order in DB after backend signature verification
+            await createOrderInDatabase({
+              id: response.razorpay_payment_id,
+              status: "Success",
+              email_address: formData.email,
+              update_time: new Date().toISOString(),
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
             });
-
-            if (verifyRes.data.success) {
-              // Payment Verified! Now create order in DB
-              await createOrderInDatabase({
-                id: response.razorpay_payment_id,
-                status: "Success",
-                email_address: formData.email,
-                update_time: new Date().toISOString()
-              });
-            } else {
-              alert("Payment verification failed. Please contact support.");
-              setLoading(false);
-            }
           } catch (err) {
             alert("Payment verification error.");
             setLoading(false);

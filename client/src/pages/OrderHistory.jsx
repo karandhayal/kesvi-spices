@@ -28,12 +28,13 @@ const OrderHistory = () => {
   // --- INIT ---
   useEffect(() => {
     // 1. Check if user is logged in (Adjust key based on how you save auth)
-    const storedUser = localStorage.getItem('userInfo'); 
-    if (storedUser) {
+    const storedUser = localStorage.getItem('parosa_user');
+    const token = localStorage.getItem('parosa_token');
+    if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       setActiveTab('history');
-      fetchMyOrders(parsedUser.token);
+      fetchMyOrders(token);
     }
   }, []);
 
@@ -85,6 +86,11 @@ const OrderHistory = () => {
       case 'Cancelled': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  const getPaymentStatus = (order) => {
+    if (order.paymentMethod === 'COD') return 'COD';
+    return order.isPaid ? 'Paid' : 'Pending';
   };
 
   return (
@@ -148,6 +154,11 @@ const OrderHistory = () => {
                     <div className="text-xs text-gray-500 flex items-center gap-2">
                        <Calendar size={12} /> {new Date(order.createdAt).toLocaleDateString()}
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Payment: <span className="font-semibold text-gray-700">{getPaymentStatus(order)}</span>
+                      <span className="mx-2">•</span>
+                      Method: <span className="font-semibold text-gray-700">{order.paymentMethod}</span>
+                    </div>
                   </div>
                   <div className="text-right">
                     <span className="block font-bold text-lg text-gray-900">₹{order.amount}</span>
@@ -159,12 +170,33 @@ const OrderHistory = () => {
                     </button>
                   </div>
                 </div>
+                <div className="px-4 sm:px-6 py-3 border-b border-gray-100 bg-white">
+                  {order.trackingUrl ? (
+                    <a
+                      href={order.trackingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:underline"
+                    >
+                      Track Shipment <ChevronRight size={14} />
+                    </a>
+                  ) : order.awbCode ? (
+                    <div className="text-xs text-gray-600">
+                      AWB: <span className="font-semibold">{order.awbCode}</span>
+                      {order.courierName && (
+                        <span className="ml-2">({order.courierName})</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">Shipment will be available once the order is dispatched.</div>
+                  )}
+                </div>
                 {/* Preview Items */}
                 <div className="p-4 flex gap-4 overflow-x-auto">
                   {(order.orderItems || order.products || []).map((item, idx) => (
                     <div key={idx} className="flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden bg-gray-100 relative">
                        {item.image ? (
-                         <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                         <img src={item.image} alt={item.name || item.title} className="w-full h-full object-cover" />
                        ) : (
                          <Package className="w-full h-full p-4 text-gray-300" />
                        )}
@@ -254,12 +286,35 @@ const OrderHistory = () => {
                        </div>
                     </div>
                     
-                    <button 
-                       onClick={() => setSelectedOrder(trackedOrder)}
-                       className="w-full py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition"
-                    >
-                       View Full Receipt
-                    </button>
+                    <div className="space-y-3">
+                      {trackedOrder.trackingUrl ? (
+                        <a
+                          href={trackedOrder.trackingUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full py-3 border border-blue-300 rounded-lg text-blue-700 font-semibold hover:bg-blue-50 transition flex items-center justify-center gap-2"
+                        >
+                          Track Shipment <ChevronRight size={16} />
+                        </a>
+                      ) : trackedOrder.awbCode ? (
+                        <div className="text-sm text-gray-700 text-center">
+                          AWB: <span className="font-semibold">{trackedOrder.awbCode}</span>
+                          {trackedOrder.courierName && (
+                            <span className="ml-2">({trackedOrder.courierName})</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500 text-center">
+                          Shipment will be available once the order is dispatched.
+                        </div>
+                      )}
+                      <button 
+                         onClick={() => setSelectedOrder(trackedOrder)}
+                         className="w-full py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition"
+                      >
+                         View Full Receipt
+                      </button>
+                    </div>
                  </div>
               </div>
             )}
@@ -288,12 +343,26 @@ const OrderHistory = () => {
             <div className="p-6 overflow-y-auto">
                
                {/* Tracking Info (If exists) */}
-               {selectedOrder.shiprocketOrderId && (
+               {(selectedOrder.trackingUrl || selectedOrder.awbCode || selectedOrder.shiprocketOrderId) && (
                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-6 flex items-start gap-3">
                     <Truck className="text-blue-600 mt-1" size={20} />
                     <div>
                        <p className="text-blue-800 font-bold text-sm">Shipped</p>
-                       <p className="text-blue-600 text-xs mt-1">Tracking ID: {selectedOrder.shiprocketOrderId}</p>
+                       {selectedOrder.trackingUrl ? (
+                         <a
+                           href={selectedOrder.trackingUrl}
+                           target="_blank"
+                           rel="noreferrer"
+                           className="text-blue-600 text-xs mt-1 inline-flex items-center gap-1 hover:underline"
+                         >
+                           Track Shipment <ChevronRight size={12} />
+                         </a>
+                       ) : (
+                         <p className="text-blue-600 text-xs mt-1">
+                           {selectedOrder.awbCode ? `AWB: ${selectedOrder.awbCode}` : `Tracking ID: ${selectedOrder.shiprocketOrderId}`}
+                           {selectedOrder.courierName ? ` (${selectedOrder.courierName})` : ''}
+                         </p>
+                       )}
                     </div>
                  </div>
                )}
@@ -307,7 +376,7 @@ const OrderHistory = () => {
                          {item.image && <img src={item.image} className="w-full h-full object-cover" alt="" />}
                       </div>
                       <div className="flex-1">
-                         <p className="font-medium text-gray-800 text-sm">{item.title}</p>
+                         <p className="font-medium text-gray-800 text-sm">{item.name || item.title}</p>
                          <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
                       </div>
                       <p className="font-semibold text-gray-800 text-sm">₹{item.price * item.quantity}</p>
@@ -331,7 +400,7 @@ const OrderHistory = () => {
                     <h3 className="font-bold text-gray-800 text-xs uppercase mb-2">Payment</h3>
                     <p className="text-sm text-gray-600">
                       Method: {selectedOrder.paymentMethod}<br/>
-                      Status: <span className={selectedOrder.paymentStatus === 'Paid' ? 'text-green-600 font-bold' : 'text-orange-600 font-bold'}>{selectedOrder.paymentStatus || 'Pending'}</span>
+                      Status: <span className={getPaymentStatus(selectedOrder) === 'Paid' ? 'text-green-600 font-bold' : 'text-orange-600 font-bold'}>{getPaymentStatus(selectedOrder)}</span>
                     </p>
                  </div>
                </div>

@@ -8,7 +8,9 @@ const OrderSchema = new mongoose.Schema({
   orderItems: [
     {
       productId: { type: String },
-      name: String, // ✅ CHANGED: Frontend sends 'name', not 'title'
+      product: { type: String },
+      name: String,
+      title: String,
       quantity: { type: Number, default: 1 },
       price: Number,
       variant: String,
@@ -50,12 +52,23 @@ const OrderSchema = new mongoose.Schema({
   },
 
   isPaid: { type: Boolean, default: false }, // ✅ Added to track payment status easily
+  paymentStatus: { type: String, default: "Pending" },
+  paymentProvider: { type: String },
+  razorpayOrderId: { type: String },
+  razorpayPaymentId: { type: String },
+  paidAt: { type: Date },
 
   // --- SHIPROCKET INTEGRATION FIELDS ---
   shiprocketOrderId: { type: Number },
-  shipmentId: { type: Number },        
-  awbCode: { type: String },           
-  courierName: { type: String }        
+  shiprocketShipmentId: { type: Number },
+  shipmentId: { type: Number },
+  awbCode: { type: String },
+  courierName: { type: String },
+  trackingUrl: { type: String },
+  shippingStatus: { type: String, default: "Pending" },
+  shippedAt: { type: Date },
+  deliveredAt: { type: Date },
+  cancelledAt: { type: Date }
 
 }, { timestamps: true });
 
