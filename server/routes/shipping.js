@@ -32,6 +32,34 @@ router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
         
         if (!order) return res.status(404).json({ message: "Order not found" });
 
+        if (order.status === 'Cancelled') {
+            return res.status(400).json({ message: "Cancelled orders cannot be shipped" });
+        }
+
+        if (!order.address || !order.orderItems || order.orderItems.length === 0) {
+            return res.status(400).json({ message: "Order is missing address or items" });
+        }
+
+        if (order.paymentMethod === 'ONLINE' && !order.isPaid) {
+            return res.status(400).json({ message: "Payment pending. Cannot create shipment" });
+        }
+
+        if (order.shiprocketOrderId || order.shiprocketShipmentId || order.shipmentId) {
+            return res.json({
+                success: true,
+                message: "Shipment already created",
+                order,
+                tracking: {
+                    shiprocketOrderId: order.shiprocketOrderId,
+                    shiprocketShipmentId: order.shiprocketShipmentId || order.shipmentId,
+                    awbCode: order.awbCode,
+                    courierName: order.courierName,
+                    trackingUrl: order.trackingUrl,
+                    shippingStatus: order.shippingStatus
+                }
+            });
+        }
+
         const token = await getShiprocketToken();
         const date = new Date().toISOString().slice(0, 10) + " 11:00";
 
@@ -74,13 +102,50 @@ router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
             headers: { Authorization: `Bearer ${token}` }
         });
 
+        const shiprocketOrderId = srRes.data?.order_id || srRes.data?.orderId;
+        const shiprocketShipmentId = srRes.data?.shipment_id || srRes.data?.shipmentId;
+        const awbCode = srRes.data?.awb_code || srRes.data?.awbCode;
+        const courierName = srRes.data?.courier_name || srRes.data?.courierName;
+        const trackingUrl = srRes.data?.tracking_url || srRes.data?.trackingUrl;
+        const expectedDeliveryDate = srRes.data?.expected_delivery_date
+            ? new Date(srRes.data.expected_delivery_date)
+            : undefined;
+
         // 5. Update Local DB
-        order.shiprocketOrderId = srRes.data.order_id;
-        order.shipmentId = srRes.data.shipment_id;
-        order.status = "Processed"; 
+        if (shiprocketOrderId) order.shiprocketOrderId = shiprocketOrderId;
+        if (shiprocketShipmentId) {
+            order.shiprocketShipmentId = shiprocketShipmentId;
+            order.shipmentId = shiprocketShipmentId;
+        }
+        if (awbCode) order.awbCode = awbCode;
+        if (courierName) order.courierName = courierName;
+        if (trackingUrl) order.trackingUrl = trackingUrl;
+        if (expectedDeliveryDate) order.expectedDeliveryDate = expectedDeliveryDate;
+
+        if (awbCode || trackingUrl || shiprocketShipmentId) {
+            order.status = 'Shipped';
+            order.shippingStatus = awbCode || trackingUrl ? 'Shipped' : 'Shipment Created';
+            order.shippedAt = order.shippedAt || new Date();
+        } else {
+            order.status = 'Processing';
+            order.shippingStatus = 'Shipment Created';
+        }
+
         await order.save();
 
-        res.json({ success: true, message: "Sent to Shiprocket!", data: srRes.data });
+        res.json({
+            success: true,
+            message: "Sent to Shiprocket!",
+            order,
+            tracking: {
+                shiprocketOrderId: order.shiprocketOrderId,
+                shiprocketShipmentId: order.shiprocketShipmentId || order.shipmentId,
+                awbCode: order.awbCode,
+                courierName: order.courierName,
+                trackingUrl: order.trackingUrl,
+                shippingStatus: order.shippingStatus
+            }
+        });
 
     } catch (error) {
         console.error("Shipping Error:", error.response?.data || error.message);
@@ -94,32 +159,71 @@ router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
 // ==========================================
 // 2. TRACK ORDER STATUS
 // ==========================================
-router.get('/track/:id', async (req, res) => {
+router.get('/track/:id', protect, adminOnly, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         
-        if (!order || !order.shipmentId) {
+        const shipmentId = order?.shiprocketShipmentId || order?.shipmentId;
+
+        if (!order || !shipmentId) {
             return res.status(404).json({ message: "Shipment not generated yet" });
         }
 
         const token = await getShiprocketToken();
 
-        const trackRes = await axios.get(`https://apiv2.shiprocket.in/v1/external/courier/track/shipment/${order.shipmentId}`, {
+        const trackRes = await axios.get(`https://apiv2.shiprocket.in/v1/external/courier/track/shipment/${shipmentId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        const trackingData = trackRes.data?.[order.shipmentId];
+        const trackingData = trackRes.data?.[shipmentId] || trackRes.data;
 
         if (trackingData) {
-            if (trackingData.awb_code && !order.awbCode) {
-                order.awbCode = trackingData.awb_code;
-                order.courierName = trackingData.courier_name;
-                order.status = "Shipped"; 
-                await order.save();
+            const awbCode = trackingData.awb_code || trackingData.awbCode;
+            const courierName = trackingData.courier_name || trackingData.courierName;
+            const trackingUrl = trackingData.tracking_url || trackingData.trackingUrl;
+            const expectedDeliveryDate = trackingData.etd || trackingData.expected_delivery_date;
+            const currentStatus = trackingData.current_status || trackingData.status || trackingData.shipment_status;
+
+            if (awbCode) order.awbCode = awbCode;
+            if (courierName) order.courierName = courierName;
+            if (trackingUrl) order.trackingUrl = trackingUrl;
+            if (expectedDeliveryDate) order.expectedDeliveryDate = new Date(expectedDeliveryDate);
+
+            if (typeof currentStatus === 'string' && currentStatus.toLowerCase().includes('deliver')) {
+                order.status = 'Delivered';
+                order.shippingStatus = 'Delivered';
+                order.deliveredAt = order.deliveredAt || new Date();
+            } else if (awbCode || trackingUrl || shipmentId) {
+                order.status = 'Shipped';
+                order.shippingStatus = currentStatus || order.shippingStatus || 'Shipped';
+                order.shippedAt = order.shippedAt || new Date();
             }
-            res.json(trackingData);
+
+            await order.save();
+
+            res.json({
+                success: true,
+                order,
+                tracking: {
+                    shiprocketOrderId: order.shiprocketOrderId,
+                    shiprocketShipmentId: order.shiprocketShipmentId || order.shipmentId,
+                    awbCode: order.awbCode,
+                    courierName: order.courierName,
+                    trackingUrl: order.trackingUrl,
+                    shippingStatus: order.shippingStatus,
+                    expectedDeliveryDate: order.expectedDeliveryDate
+                }
+            });
         } else {
-            res.json({ status: "Pending Courier Assignment" });
+            res.json({
+                success: true,
+                order,
+                tracking: {
+                    shiprocketOrderId: order.shiprocketOrderId,
+                    shiprocketShipmentId: order.shiprocketShipmentId || order.shipmentId,
+                    shippingStatus: order.shippingStatus || "Pending Courier Assignment"
+                }
+            });
         }
 
     } catch (error) {

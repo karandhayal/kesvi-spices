@@ -277,9 +277,31 @@ router.post('/create', async (req, res) => {
 // ==========================================
 router.put("/:id", protect, adminOnly, async (req, res) => {
   try {
+    const allowedStatuses = ['Pending Verification', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    const updates = { ...req.body };
+
+    if (updates.status && !allowedStatuses.includes(updates.status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    if (updates.status === 'Delivered') {
+      updates.deliveredAt = new Date();
+      updates.shippingStatus = 'Delivered';
+    }
+
+    if (updates.status === 'Cancelled') {
+      updates.cancelledAt = new Date();
+      updates.shippingStatus = 'Cancelled';
+    }
+
+    if (updates.status === 'Shipped') {
+      updates.shippedAt = updates.shippedAt || new Date();
+      updates.shippingStatus = updates.shippingStatus || 'Shipped';
+    }
+
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updates },
       { new: true }
     );
     res.status(200).json(updatedOrder);
@@ -314,6 +336,7 @@ router.get('/myorders', protect, async (req, res) => {
       courierName: order.courierName,
       trackingUrl: order.trackingUrl,
       shippingStatus: order.shippingStatus,
+      expectedDeliveryDate: order.expectedDeliveryDate,
       shippedAt: order.shippedAt,
       deliveredAt: order.deliveredAt
     }));
@@ -385,6 +408,7 @@ router.post('/track', async (req, res) => {
       courierName: order.courierName,
       trackingUrl: order.trackingUrl,
       shippingStatus: order.shippingStatus,
+      expectedDeliveryDate: order.expectedDeliveryDate,
       shippedAt: order.shippedAt,
       deliveredAt: order.deliveredAt
     });

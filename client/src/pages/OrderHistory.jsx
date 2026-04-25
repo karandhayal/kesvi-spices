@@ -158,6 +158,12 @@ const OrderHistory = () => {
                       Payment: <span className="font-semibold text-gray-700">{getPaymentStatus(order)}</span>
                       <span className="mx-2">•</span>
                       Method: <span className="font-semibold text-gray-700">{order.paymentMethod}</span>
+                      {order.shippingStatus && (
+                        <>
+                          <span className="mx-2">•</span>
+                          Shipping: <span className="font-semibold text-gray-700">{order.shippingStatus}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -188,7 +194,12 @@ const OrderHistory = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-500">Shipment will be available once the order is dispatched.</div>
+                    <div className="text-xs text-gray-500">Tracking will be available once your order is shipped.</div>
+                  )}
+                  {order.expectedDeliveryDate && (
+                    <div className="text-[10px] text-gray-500 mt-2">
+                      Expected Delivery: {new Date(order.expectedDeliveryDate).toLocaleDateString()}
+                    </div>
                   )}
                 </div>
                 {/* Preview Items */}
@@ -305,7 +316,12 @@ const OrderHistory = () => {
                         </div>
                       ) : (
                         <div className="text-sm text-gray-500 text-center">
-                          Shipment will be available once the order is dispatched.
+                          Tracking will be available once your order is shipped.
+                        </div>
+                      )}
+                      {trackedOrder.expectedDeliveryDate && (
+                        <div className="text-xs text-gray-500 text-center">
+                          Expected Delivery: {new Date(trackedOrder.expectedDeliveryDate).toLocaleDateString()}
                         </div>
                       )}
                       <button 
@@ -361,6 +377,11 @@ const OrderHistory = () => {
                          <p className="text-blue-600 text-xs mt-1">
                            {selectedOrder.awbCode ? `AWB: ${selectedOrder.awbCode}` : `Tracking ID: ${selectedOrder.shiprocketOrderId}`}
                            {selectedOrder.courierName ? ` (${selectedOrder.courierName})` : ''}
+                         </p>
+                       )}
+                       {selectedOrder.expectedDeliveryDate && (
+                         <p className="text-blue-600 text-xs mt-1">
+                           Expected Delivery: {new Date(selectedOrder.expectedDeliveryDate).toLocaleDateString()}
                          </p>
                        )}
                     </div>

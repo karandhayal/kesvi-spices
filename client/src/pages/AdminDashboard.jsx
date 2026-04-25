@@ -65,11 +65,40 @@ const AdminDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        alert(`Success! Tracking ID: ${res.data.data.order_id}`);
-        fetchData(); // Refresh to show AWB
+        const updatedOrder = res.data.order;
+        if (updatedOrder) {
+          setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+          if (selectedOrder && selectedOrder._id === updatedOrder._id) {
+            setSelectedOrder(updatedOrder);
+          }
+        } else {
+          fetchData();
+        }
+        alert(res.data.message || "Shipment created");
       }
     } catch (err) {
       alert("Shipping Failed: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleSyncTracking = async (orderId) => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/shipping/track/${orderId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updatedOrder = res.data.order;
+      if (updatedOrder) {
+        setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+        if (selectedOrder && selectedOrder._id === updatedOrder._id) {
+          setSelectedOrder(updatedOrder);
+        }
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      alert("Tracking sync failed: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -139,8 +168,9 @@ const AdminDashboard = () => {
     orders.forEach(order => {
       const items = order.orderItems || [];
       items.forEach(item => {
-        if (item && item.title) {
-            productSales[item.title] = (productSales[item.title] || 0) + Number(item.quantity || 1);
+        const itemName = item?.title || item?.name;
+        if (itemName) {
+            productSales[itemName] = (productSales[itemName] || 0) + Number(item.quantity || 1);
         }
       });
     });
@@ -289,6 +319,10 @@ const AdminDashboard = () => {
                   <tbody className="divide-y divide-gray-100">
                     {filteredOrders.map(order => {
                       const items = order.orderItems || [];
+                      const paymentStatus = order.paymentStatus || (order.isPaid ? 'Paid' : 'Pending');
+                      const shippingStatus = order.shippingStatus || 'Pending';
+                      const hasShipment = Boolean(order.shiprocketOrderId || order.shiprocketShipmentId || order.shipmentId);
+                      const canShip = order.status !== 'Cancelled' && order.status !== 'Delivered' && (order.paymentMethod === 'COD' || order.isPaid);
                       
                       return (
                       <tr key={order._id} className="hover:bg-gray-50">
@@ -298,6 +332,10 @@ const AdminDashboard = () => {
                           {order.paymentMethod === 'UPI_MANUAL' && (
                              <span className="mt-1 inline-block px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded">UPI (Check UTR)</span>
                           )}
+                          <div className="mt-2 text-[10px] uppercase tracking-widest text-gray-400">Payment</div>
+                          <div className="text-xs text-gray-600">
+                            {order.paymentMethod} · {paymentStatus}
+                          </div>
                         </td>
                         <td className="p-4">
                            <div className="font-medium">{order.address?.fullName}</div>
@@ -305,7 +343,7 @@ const AdminDashboard = () => {
                         </td>
                         <td className="p-4 text-xs text-gray-600 max-w-xs">
                           {items.slice(0, 2).map((p, i) => (
-                            <div key={i}>{p.title} <span className="text-gray-400">x{p.quantity}</span></div>
+                            <div key={i}>{p.title || p.name} <span className="text-gray-400">x{p.quantity}</span></div>
                           ))}
                           {items.length > 2 && <div className="text-gray-400 italic">+{items.length - 2} more...</div>}
                         </td>
@@ -338,16 +376,52 @@ const AdminDashboard = () => {
                                <option value="Cancelled">Cancelled</option>
                              </select>
                           </div>
+
+                          <div className="mt-2 text-xs text-gray-500">
+                            Shipping: <span className="font-semibold text-gray-700">{shippingStatus}</span>
+                            {order.awbCode && (
+                              <span className="ml-2">AWB: {order.awbCode}</span>
+                            )}
+                            {order.courierName && (
+                              <span className="ml-2">({order.courierName})</span>
+                            )}
+                          </div>
                           
                           {/* Shiprocket Button */}
-                          {order.status !== 'Cancelled' && !order.shiprocketOrderId && (
-                            <button 
-                                onClick={() => handleShip(order._id)}
-                                className="mt-2 flex items-center gap-1 text-[10px] text-indigo-600 hover:underline"
-                            >
-                                <Truck size={12} /> Ship via Shiprocket
-                            </button>
-                          )}
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                            {!canShip && order.paymentMethod !== 'COD' && !order.isPaid && (
+                              <span className="text-orange-600 font-semibold">Payment Pending</span>
+                            )}
+
+                            {canShip && !hasShipment && (
+                              <button 
+                                  onClick={() => handleShip(order._id)}
+                                  className="flex items-center gap-1 text-indigo-600 hover:underline"
+                              >
+                                  <Truck size={12} /> Create Shipment
+                              </button>
+                            )}
+
+                            {canShip && hasShipment && !order.awbCode && !order.trackingUrl && (
+                              <button 
+                                  onClick={() => handleSyncTracking(order._id)}
+                                  className="flex items-center gap-1 text-blue-600 hover:underline"
+                              >
+                                  <Truck size={12} /> Sync Tracking
+                              </button>
+                            )}
+
+                            {order.trackingUrl && (
+                              <a
+                                href={order.trackingUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1 text-green-600 hover:underline"
+                              >
+                                <Truck size={12} /> Track Shipment
+                              </a>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )})}
@@ -554,12 +628,55 @@ const AdminDashboard = () => {
                  </div>
                  <div>
                     <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Payment</span>
-                    <p className="font-semibold text-blue-900">{selectedOrder.paymentMethod}</p>
+                    <p className="font-semibold text-blue-900">
+                      {selectedOrder.paymentMethod} · {selectedOrder.paymentStatus || (selectedOrder.isPaid ? 'Paid' : 'Pending')}
+                    </p>
                  </div>
                  <div className="text-right">
                     <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">Total Amount</span>
                     <p className="text-xl font-bold text-blue-900">₹{selectedOrder.amount}</p>
                  </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
+                  <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Payment Details</h4>
+                  <div className="text-sm text-gray-700">
+                    <div>Provider: <span className="font-semibold">{selectedOrder.paymentProvider || 'N/A'}</span></div>
+                    <div>Status: <span className="font-semibold">{selectedOrder.paymentStatus || (selectedOrder.isPaid ? 'Paid' : 'Pending')}</span></div>
+                    {selectedOrder.razorpayPaymentId && (
+                      <div>Razorpay ID: <span className="font-mono">{selectedOrder.razorpayPaymentId}</span></div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
+                  <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Shipping Details</h4>
+                  <div className="text-sm text-gray-700">
+                    <div>Status: <span className="font-semibold">{selectedOrder.shippingStatus || 'Pending'}</span></div>
+                    {selectedOrder.shiprocketOrderId && (
+                      <div>Shiprocket Order: <span className="font-mono">{selectedOrder.shiprocketOrderId}</span></div>
+                    )}
+                    {(selectedOrder.shiprocketShipmentId || selectedOrder.shipmentId) && (
+                      <div>Shipment ID: <span className="font-mono">{selectedOrder.shiprocketShipmentId || selectedOrder.shipmentId}</span></div>
+                    )}
+                    {selectedOrder.awbCode && (
+                      <div>AWB: <span className="font-mono">{selectedOrder.awbCode}</span></div>
+                    )}
+                    {selectedOrder.courierName && (
+                      <div>Courier: <span className="font-semibold">{selectedOrder.courierName}</span></div>
+                    )}
+                    {selectedOrder.trackingUrl && (
+                      <div>
+                        <a href={selectedOrder.trackingUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          Track Shipment
+                        </a>
+                      </div>
+                    )}
+                    {selectedOrder.expectedDeliveryDate && (
+                      <div>ETA: <span className="font-semibold">{new Date(selectedOrder.expectedDeliveryDate).toLocaleDateString()}</span></div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Grid: Address & Customer */}

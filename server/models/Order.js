@@ -38,7 +38,11 @@ const OrderSchema = new mongoose.Schema({
   },
   
   // --- Order Status ---
-  status: { type: String, default: "Processing" },
+  status: {
+    type: String,
+    enum: ['Pending Verification', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    default: "Processing"
+  },
   
   // --- Payment Details ---
   paymentMethod: { type: String, enum: ['COD', 'ONLINE', 'UPI_MANUAL'], required: true },
@@ -66,6 +70,7 @@ const OrderSchema = new mongoose.Schema({
   courierName: { type: String },
   trackingUrl: { type: String },
   shippingStatus: { type: String, default: "Pending" },
+  expectedDeliveryDate: { type: Date },
   shippedAt: { type: Date },
   deliveredAt: { type: Date },
   cancelledAt: { type: Date }
