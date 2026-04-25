@@ -3,9 +3,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const mongoose = require("mongoose"); // ✅ Added mongoose requirement
 const connectDB = require("./db");
 const { protect, adminOnly } = require('./middleware/authMiddleware');
+const MembershipRequest = require('./models/MembershipRequest');
 
 const app = express();
 const storeRoute = require('./routes/store');
@@ -65,22 +65,6 @@ app.use(express.json());
 
 connectDB();
 
-/* ==========================================
-   ✅ NEW: MEMBERSHIP REQUEST MODEL & SCHEMA
-   (Defined here for quick integration)
-========================================== */
-const membershipRequestSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true },
-  isApproved: { type: Boolean, default: false },
-}, { 
-  timestamps: true 
-});
-
-// Check if model exists to prevent overwrite error during hot reloads
-const MembershipRequest = mongoose.models.MembershipRequest || mongoose.model('MembershipRequest', membershipRequestSchema);
-
 /* ================================
    4. HEALTH CHECK
 ================================ */
@@ -129,10 +113,20 @@ app.post('/api/membership-requests', async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
+    const existingPending = await MembershipRequest.findOne({
+      phone,
+      status: 'pending',
+    });
+    if (existingPending) {
+      return res.status(409).json({
+        message: 'A pending membership request already exists for this phone number.',
+      });
+    }
+
     const newRequest = new MembershipRequest({
       fullName,
       phone,
-      address
+      address,
     });
 
     const savedRequest = await newRequest.save();
@@ -143,7 +137,31 @@ app.post('/api/membership-requests', async (req, res) => {
   }
 });
 
-// 2. GET: Fetch all requests (For the Admin Dashboard)
+// 2. GET: Public stats (For Organic page slots)
+app.get('/api/membership-requests/stats', async (req, res) => {
+  try {
+    const totalSlots = Number(process.env.MEMBERSHIP_TOTAL_SLOTS || 100);
+
+    const [acceptedCount, pendingCount] = await Promise.all([
+      MembershipRequest.countDocuments({ status: 'accepted' }),
+      MembershipRequest.countDocuments({ status: 'pending' }),
+    ]);
+
+    const slotsLeft = Math.max(totalSlots - acceptedCount, 0);
+
+    res.json({
+      totalSlots,
+      acceptedCount,
+      pendingCount,
+      slotsLeft,
+    });
+  } catch (error) {
+    console.error("Error fetching membership stats:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// 3. GET: Fetch all requests (For the Admin Dashboard)
 app.get('/api/membership-requests', protect, adminOnly, async (req, res) => {
   try {
     // Sort by newest first
@@ -151,6 +169,39 @@ app.get('/api/membership-requests', protect, adminOnly, async (req, res) => {
     res.json(requests);
   } catch (error) {
     console.error("Error fetching requests:", error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// 4. PUT: Update request status (Admin Only)
+app.put('/api/membership-requests/:id/status', protect, adminOnly, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value.' });
+    }
+
+    const request = await MembershipRequest.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: 'Membership request not found.' });
+    }
+
+    if (status === 'accepted') {
+      request.status = 'accepted';
+      request.acceptedAt = new Date();
+      request.rejectedAt = null;
+    }
+
+    if (status === 'rejected') {
+      request.status = 'rejected';
+      request.rejectedAt = new Date();
+      request.acceptedAt = null;
+    }
+
+    const updatedRequest = await request.save();
+    res.json(updatedRequest);
+  } catch (error) {
+    console.error("Error updating membership request status:", error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });

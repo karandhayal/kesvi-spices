@@ -106,6 +106,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const updateMembershipStatus = async (requestId, status) => {
+    try {
+      const res = await axios.put(
+        `${BASE_URL}/membership-requests/${requestId}/status`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setRequests(prev => prev.map(r => r._id === requestId ? res.data : r));
+    } catch (err) {
+      alert("Failed to update membership request status");
+    }
+  };
+
   // --- COMPUTED DATA (ANALYTICS) ---
   const stats = useMemo(() => {
     if (!Array.isArray(orders)) return { totalRevenue: 0, totalOrders: 0, pendingOrders: 0, lowStockItems: 0, topProducts: [] };
@@ -137,6 +151,8 @@ const AdminDashboard = () => {
 
     return { totalRevenue, totalOrders, pendingOrders, lowStockItems, topProducts };
   }, [orders, products]);
+
+  const pendingRequests = requests.filter(r => r.status === 'pending').length;
 
   // --- FILTERED ORDERS ---
   const filteredOrders = orders.filter(order => {
@@ -206,7 +222,7 @@ const AdminDashboard = () => {
             label="Requests" 
             active={activeSection === 'requests'} 
             onClick={() => setActiveSection('requests')} 
-            badge={requests.length > 0 ? requests.length : null}
+            badge={pendingRequests > 0 ? pendingRequests : null}
           />
           <SidebarItem 
             icon={<BarChart3 size={20} />} 
@@ -415,21 +431,52 @@ const AdminDashboard = () => {
                        <th className="p-4">Phone</th>
                        <th className="p-4">Address</th>
                        <th className="p-4">Date</th>
+                       <th className="p-4">Status</th>
+                       <th className="p-4">Actions</th>
                      </tr>
                    </thead>
                    <tbody className="divide-y divide-gray-100">
-                     {requests.length > 0 ? requests.map((req, idx) => (
-                       <tr key={idx} className="hover:bg-gray-50">
+                     {requests.length > 0 ? requests.map((req) => (
+                       <tr key={req._id} className="hover:bg-gray-50">
                          <td className="p-4 font-medium text-gray-800">{req.fullName}</td>
                          <td className="p-4 text-gray-600">{req.phone}</td>
                          <td className="p-4 text-gray-600 max-w-xs truncate">{req.address}</td>
                          <td className="p-4 text-gray-500 text-xs">
                            {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}
                          </td>
+                         <td className="p-4">
+                           <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${
+                             req.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                             req.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                             'bg-yellow-100 text-yellow-700'
+                           }`}>
+                             {req.status || 'pending'}
+                           </span>
+                         </td>
+                         <td className="p-4">
+                           {req.status === 'pending' ? (
+                             <div className="flex items-center gap-2">
+                               <button
+                                 onClick={() => updateMembershipStatus(req._id, 'accepted')}
+                                 className="px-3 py-1 text-xs font-semibold rounded bg-green-600 text-white hover:bg-green-700 transition"
+                               >
+                                 Accept
+                               </button>
+                               <button
+                                 onClick={() => updateMembershipStatus(req._id, 'rejected')}
+                                 className="px-3 py-1 text-xs font-semibold rounded bg-red-600 text-white hover:bg-red-700 transition"
+                               >
+                                 Reject
+                               </button>
+                             </div>
+                           ) : (
+                             <span className="text-xs text-gray-400">No actions</span>
+                           )}
+                         </td>
                        </tr>
                      )) : (
                        <tr>
-                         <td colSpan="4" className="p-8 text-center text-gray-400">
+                         <td colSpan="6" className="p-8 text-center text-gray-400">
                            No membership requests found.
                          </td>
                        </tr>
@@ -447,7 +494,7 @@ const AdminDashboard = () => {
                 <StatCard title="Total Revenue" value={`₹${stats.totalRevenue.toLocaleString()}`} color="blue" />
                 <StatCard title="Total Orders" value={stats.totalOrders} color="purple" />
                 <StatCard title="Pending" value={stats.pendingOrders} color="orange" />
-                <StatCard title="Requests" value={requests.length} color="red" />
+                <StatCard title="Requests" value={pendingRequests} color="red" />
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 max-w-lg">
                    <h3 className="font-bold text-gray-700 mb-4">Top Selling Products</h3>

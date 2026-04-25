@@ -37,7 +37,7 @@ const BRAND_COLORS = {
 /* --- COMPONENTS --- */
 
 // 1. APPLICATION MODAL (Updated with API Call)
-const ApplicationModal = ({ isOpen, onClose }) => {
+const ApplicationModal = ({ isOpen, onClose, onSubmitted }) => {
   const [step, setStep] = useState(1); // 1 = Form, 2 = Success
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -66,6 +66,7 @@ const ApplicationModal = ({ isOpen, onClose }) => {
       // ✅ API CALL TO SUBMIT REQUEST
       await axios.post(`${BASE_URL}/membership-requests`, formData);
       setStep(2);
+      if (onSubmitted) onSubmitted();
     } catch (error) {
       console.error("Submission failed", error);
       alert("Something went wrong. Please try again.");
@@ -421,9 +422,10 @@ const ProgressBar = () => {
   };
   
   // 7. MEMBERSHIP SECTION (Updated to open Modal)
-  const MembershipSection = ({ onOpenModal }) => {
-    const totalSpots = 100;
-    const takenSpots = 20;
+  const MembershipSection = ({ onOpenModal, totalSlots, acceptedCount, slotsLeft }) => {
+    const safeTotal = Number(totalSlots || 100);
+    const safeAccepted = Math.min(Number(acceptedCount || 0), safeTotal);
+    const safeSlotsLeft = Math.max(Number(slotsLeft ?? safeTotal - safeAccepted), 0);
   
     return (
       <section id="apply" className="bg-[#2C2420] text-[#F9F7F2] py-20 md:py-32 px-6">
@@ -448,12 +450,12 @@ const ProgressBar = () => {
             <div className="bg-white/5 p-5 md:p-6 border border-white/10 rounded-sm backdrop-blur-sm">
               <div className="flex justify-between text-xs md:text-sm uppercase tracking-widest mb-2 text-[#B08968]">
                 <span>Current Availability</span>
-                <span>{totalSpots - takenSpots} Slots Left</span>
+                <span>{safeSlotsLeft} Slots Left</span>
               </div>
               <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
-                  whileInView={{ width: `${(takenSpots/totalSpots)*100}%` }}
+                  whileInView={{ width: `${(safeAccepted / safeTotal) * 100}%` }}
                   transition={{ duration: 1.5, ease: "easeOut" }}
                   className="h-full bg-[#B08968]"
                 />
@@ -526,6 +528,26 @@ const ProgressBar = () => {
   /* --- MAIN PAGE LAYOUT --- */
   const OrganicProductPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [membershipStats, setMembershipStats] = useState({
+      totalSlots: 100,
+      acceptedCount: 20,
+      pendingCount: 0,
+      slotsLeft: 80,
+    });
+
+    const fetchMembershipStats = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/membership-requests/stats`);
+        if (res.data) {
+          setMembershipStats(res.data);
+        }
+      } catch (error) {
+      }
+    };
+
+    useEffect(() => {
+      fetchMembershipStats();
+    }, []);
   
     return (
       <div className="font-sans antialiased selection:bg-[#B08968] selection:text-white">
@@ -551,12 +573,21 @@ const ProgressBar = () => {
           <StorySection />
           <ProcessSection />
           <ProductShowcase />
-          <MembershipSection onOpenModal={() => setIsModalOpen(true)} />
+          <MembershipSection
+            onOpenModal={() => setIsModalOpen(true)}
+            totalSlots={membershipStats.totalSlots}
+            acceptedCount={membershipStats.acceptedCount}
+            slotsLeft={membershipStats.slotsLeft}
+          />
           <FooterTrust />
         </main>
   
         {/* MODAL IS PLACED HERE */}
-        <ApplicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <ApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmitted={fetchMembershipStats}
+        />
       </div>
     );
   };
