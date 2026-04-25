@@ -10,11 +10,19 @@ export const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("parosa_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      localStorage.removeItem("parosa_user");
+      localStorage.removeItem("parosa_token");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -70,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, verifyOTP, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyOTP, logout }}>
       {children}
     </AuthContext.Provider>
   );

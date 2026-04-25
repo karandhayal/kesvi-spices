@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import the Context Hook
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 // We still need axios for WhatsApp OTP (since that's not in AuthContext yet), 
 // but we will use the BASE_URL from context or hardcode it for now.
@@ -18,6 +18,8 @@ const Login = () => {
   // ✅ USE FUNCTIONS FROM CONTEXT
   const { login, register, verifyOTP, user } = useAuth(); 
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || "/";
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -48,7 +50,7 @@ const Login = () => {
         // or manually setLocalStorage to sync with AuthProvider on refresh.
         localStorage.setItem("parosa_user", JSON.stringify(res.data.user));
         localStorage.setItem("parosa_token", res.data.token);
-        window.location.href = "/"; // Force reload to pick up auth state
+        navigate(redirectTo, { replace: true }); // Force reload to pick up auth state
       }
     } catch (err) {
       setError("Invalid OTP");
@@ -75,7 +77,7 @@ const Login = () => {
     else {
        const result = await login(formData.email, formData.password);
        if (result.success) {
-         navigate('/');
+         navigate(redirectTo, { replace: true });
        } else {
          setError(result.message);
        }
@@ -86,7 +88,7 @@ const Login = () => {
   const handleVerifyEmailOtp = async () => {
     const result = await verifyOTP(formData.email, otp);
     if (result.success) {
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } else {
       setError(result.message);
     }

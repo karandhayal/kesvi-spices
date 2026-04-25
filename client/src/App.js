@@ -42,10 +42,18 @@ axios.defaults.withCredentials = true;
 // --- HELPER COMPONENT FOR LAYOUT LOGIC ---
 // This component sits inside the Router, so useLocation works here
 const ProtectedAdminRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const isAdmin = user && (user.role === 'admin' || user.isAdmin === true);
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Checking admin access...
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" state={{ from: "/admin" }} replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
 };
