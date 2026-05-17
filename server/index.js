@@ -15,37 +15,26 @@ const storeRoute = require('./routes/store');
 ================================ */
 
 const allowedOrigins = [
-  "https://parosa.co.in",
-  "https://www.parosa.co.in",
-  "http://localhost:3000",
-  "https://kesvi-spices.vercel.app",
+  'https://parosa.co.in',
+  'https://www.parosa.co.in',
+  'http://localhost:3000',
+  'http://localhost:5173'
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("Blocked by CORS:", origin);
-        callback(null, false);
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-      "Accept",
-    ],
-  })
-);
-
-// ✅ FIX: Use Regex (/.*/) instead of string "*" to prevent Cloud Run crash
-app.options(/.*/, cors());
+app.options('*', cors());
 
 /* ================================
    2. SECURITY + BODY PARSING

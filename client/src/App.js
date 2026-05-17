@@ -38,7 +38,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // STEP B: Uncomment "Render URL" when pushing to GitHub/Vercel
 axios.defaults.baseURL = "https://parosa-755646660410.asia-south2.run.app"; 
 
-axios.defaults.withCredentials = true; 
+axios.defaults.withCredentials = false; 
 
 // --- HELPER COMPONENT FOR LAYOUT LOGIC ---
 // This component sits inside the Router, so useLocation works here
