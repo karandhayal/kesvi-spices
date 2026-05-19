@@ -129,6 +129,7 @@ app.use("/api/orders", require("./routes/order"));
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/shipping", require("./routes/shipping"));
 app.use('/api/stores', storeRoute);
+app.use('/api/admin/seed', require('./routes/adminSeed'));
 
 /* ==========================================
    ✅ NEW: MEMBERSHIP REQUEST ROUTES
