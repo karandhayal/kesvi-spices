@@ -4,24 +4,21 @@ const Coupon = require('../models/Coupon');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const crypto = require('crypto');
-const mongoose = require('mongoose');
+const withMongoId = require('../utils/withMongoId');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 const resolveProductFromItem = async (item) => {
   const productId = item.productId || item.product || item._id || item.id;
   const slug = item.slug;
+  const parsedId = Number(productId);
 
   let product = null;
-  if (productId && mongoose.isValidObjectId(productId)) {
-    product = await Product.findById(productId);
+  if (Number.isInteger(parsedId) && parsedId > 0) {
+    product = await Product.findByPk(parsedId);
   }
 
   if (!product && slug) {
-    product = await Product.findOne({ slug });
-  }
-
-  if (!product && productId && !mongoose.isValidObjectId(productId)) {
-    product = await Product.findOne({ _id: productId }).catch(() => null);
+    product = await Product.findOne({ where: { slug } });
   }
 
   return { product, productId };
@@ -59,7 +56,7 @@ const buildOrderItemsFromRequest = async (items) => {
 
     const resolvedName = item.name || item.title || product.name || 'Product';
     const resolvedTitle = item.title || item.name || product.name || 'Product';
-    const resolvedProductId = productId || product._id;
+    const resolvedProductId = productId || product.id;
 
     normalizedItems.push({
       productId: resolvedProductId ? String(resolvedProductId) : undefined,
@@ -82,12 +79,12 @@ const buildOrderItemsFromRequest = async (items) => {
 // 1. ADMIN ROUTE (Fetches all orders)
 // ==========================================
 router.get('/all', protect, adminOnly, async (req, res) => {
-    try {
-        const orders = await Order.find().sort({ createdAt: -1 });
-        res.status(200).json(orders);
-    } catch (err) {
-        res.status(500).json(err);
-    }
+  try {
+    const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
+    res.status(200).json(orders.map(withMongoId));
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 // ==========================================
@@ -96,27 +93,27 @@ router.get('/all', protect, adminOnly, async (req, res) => {
 router.post('/validate-coupon', async (req, res) => {
   try {
     const { code, cartTotal } = req.body;
-    const coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
+    const coupon = await Coupon.findOne({ where: { code: code.toUpperCase(), isActive: true } });
 
-    if (!coupon) return res.status(404).json({ success: false, message: "Invalid Coupon Code" });
+    if (!coupon) return res.status(404).json({ success: false, message: 'Invalid Coupon Code' });
 
-    if (cartTotal < coupon.minOrder) {
-      return res.status(400).json({ success: false, message: `Minimum order of ₹${coupon.minOrder} required` });
+    const minOrderValue = Number(coupon.minOrderValue || 0);
+    if (cartTotal < minOrderValue) {
+      return res.status(400).json({ success: false, message: `Minimum order of ₹${minOrderValue} required` });
     }
 
-    let discountAmount = coupon.type === 'percent' 
-      ? (cartTotal * coupon.value) / 100 
-      : coupon.value;
+    let discountAmount = coupon.discountType === 'percent'
+      ? (cartTotal * Number(coupon.discountValue)) / 100
+      : Number(coupon.discountValue);
 
     if (discountAmount > cartTotal) discountAmount = cartTotal;
 
-    res.status(200).json({ 
-      success: true, 
-      discount: Math.floor(discountAmount), 
+    res.status(200).json({
+      success: true,
+      discount: Math.floor(discountAmount),
       code: coupon.code,
-      message: "Coupon Applied!" 
+      message: 'Coupon Applied!'
     });
-
   } catch (err) {
     res.status(500).json(err);
   }
@@ -126,12 +123,12 @@ router.post('/validate-coupon', async (req, res) => {
 // 3. CREATE ORDER
 // ==========================================
 router.post('/create', async (req, res) => {
-  const { 
-    userId, 
-    orderItems, 
-    shippingAddress, 
-    paymentMethod, 
-    paymentResult, 
+  const {
+    userId,
+    orderItems,
+    shippingAddress,
+    paymentMethod,
+    paymentResult,
     couponCode,
     razorpay_order_id,
     razorpay_payment_id,
@@ -139,89 +136,53 @@ router.post('/create', async (req, res) => {
   } = req.body;
 
   try {
-    // ------------------------------------------
-    // A. PRODUCT VERIFICATION
-    // ------------------------------------------
     let finalProducts = orderItems;
-    
-    // If no items sent but userID exists, try fetching from DB Cart (Safety fallback)
+
     if ((!finalProducts || finalProducts.length === 0) && userId) {
-      const cart = await Cart.findOne({ userId });
-      if (cart) finalProducts = cart.products;
+      const cart = await Cart.findOne({ where: { userId } });
+      if (cart) finalProducts = cart.items || [];
     }
 
     if (!finalProducts || finalProducts.length === 0) {
-      return res.status(400).json({ success: false, message: "No items in order" });
+      return res.status(400).json({ success: false, message: 'No items in order' });
     }
 
     const { normalizedItems, subtotal } = await buildOrderItemsFromRequest(finalProducts);
-
-    // ------------------------------------------
-    // B. RECALCULATE TOTALS (Security)
-    // ------------------------------------------
     const safeSubtotal = Number(subtotal) || 0;
 
-    // ✅ SHIPPING LOGIC: Free > 399, else 60
-    let shippingFee = safeSubtotal > 399 ? 0 : 60; 
-    
-    // ✅ COD FEE LOGIC
-    let codFee = 0;
-    if (paymentMethod === 'COD') {
-        codFee = 50;
-    }
-
+    let shippingFee = safeSubtotal > 399 ? 0 : 60;
+    let codFee = paymentMethod === 'COD' ? 50 : 0;
     let discount = 0;
 
-    // ------------------------------------------
-    // C. APPLY COUPON
-    // ------------------------------------------
     if (couponCode) {
-      const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-      if (coupon && safeSubtotal >= coupon.minOrder) {
-        discount = coupon.type === 'percent' 
-          ? (safeSubtotal * coupon.value) / 100 
-          : coupon.value;
+      const coupon = await Coupon.findOne({ where: { code: couponCode.toUpperCase(), isActive: true } });
+      const minOrderValue = Number(coupon?.minOrderValue || 0);
+      if (coupon && safeSubtotal >= minOrderValue) {
+        discount = coupon.discountType === 'percent'
+          ? (safeSubtotal * Number(coupon.discountValue)) / 100
+          : Number(coupon.discountValue);
       }
     }
 
-    // ✅ FINAL CALCULATION (Includes COD Fee)
     const finalAmount = Math.floor(Math.max(0, safeSubtotal + shippingFee + codFee - discount));
 
-    // ------------------------------------------
-    // D. DETERMINE STATUS
-    // ------------------------------------------
     let initialStatus = 'Processing';
     if (paymentMethod === 'UPI_MANUAL') {
-        initialStatus = 'Pending Verification';
+      initialStatus = 'Pending Verification';
     }
 
-    // ------------------------------------------
-    // E. CREATE & SAVE ORDER
-    // ------------------------------------------
-    const newOrder = new Order({
-      userId: userId || null, 
-      
-      // Map 'shippingAddress' to 'address'
-      address: shippingAddress, 
-      
+    const newOrder = Order.build({
+      userId: userId || null,
+      address: shippingAddress,
       orderItems: normalizedItems,
-      
-      // Map 'safeSubtotal' to 'subtotal'
-      subtotal: safeSubtotal,    
-      
-      // Map 'finalAmount' to 'amount'
-      amount: finalAmount,     
-      
-      shippingFee: shippingFee,  
-      
+      subtotal: safeSubtotal,
+      amount: finalAmount,
+      shippingFee,
       discount: Math.floor(discount),
       couponCode,
-      
       paymentMethod,
-      paymentResult: paymentResult || {}, 
-      
+      paymentResult: paymentResult || {},
       status: initialStatus,
-      
       isPaid: false,
       paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Pending',
       paymentProvider: paymentMethod === 'COD' ? 'cod' : undefined
@@ -232,25 +193,25 @@ router.post('/create', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Missing Razorpay verification data' });
       }
 
-      const duplicatePayment = await Order.findOne({ razorpayPaymentId: razorpay_payment_id });
+      const duplicatePayment = await Order.findOne({ where: { razorpayPaymentId: razorpay_payment_id } });
       if (duplicatePayment) {
-        return res.status(409).json({ success: false, message: 'Duplicate payment detected', order: duplicatePayment });
+        return res.status(409).json({ success: false, message: 'Duplicate payment detected', order: withMongoId(duplicatePayment) });
+      }
+
+      if (!process.env.RAZORPAY_KEY_SECRET) {
+        console.error('Razorpay secret not configured for order verification');
+        return res.status(500).json({ success: false, message: 'Payment service is not configured' });
       }
 
       const body = `${razorpay_order_id}|${razorpay_payment_id}`;
-        if (!process.env.RAZORPAY_KEY_SECRET) {
-          console.error('Razorpay secret not configured for order verification');
-          return res.status(500).json({ success: false, message: 'Payment service is not configured' });
-        }
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(body.toString())
+        .digest('hex');
 
-        const expectedSignature = crypto
-          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-          .update(body.toString())
-          .digest('hex');
-
-        if (expectedSignature !== razorpay_signature) {
-          return res.status(400).json({ success: false, message: 'Invalid Razorpay signature' });
-        }
+      if (expectedSignature !== razorpay_signature) {
+        return res.status(400).json({ success: false, message: 'Invalid Razorpay signature' });
+      }
 
       newOrder.isPaid = true;
       newOrder.paymentStatus = 'Paid';
@@ -262,17 +223,13 @@ router.post('/create', async (req, res) => {
 
     const savedOrder = await newOrder.save();
 
-    // ------------------------------------------
-    // F. CLEANUP
-    // ------------------------------------------
     if (userId) {
-        await Cart.findOneAndDelete({ userId }); 
+      await Cart.destroy({ where: { userId } });
     }
 
-    res.status(200).json({ success: true, order: savedOrder });
-
+    res.status(200).json({ success: true, order: withMongoId(savedOrder) });
   } catch (err) {
-    console.error("Order Creation Error:", err); 
+    console.error('Order Creation Error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -280,7 +237,7 @@ router.post('/create', async (req, res) => {
 // ==========================================
 // 4. UPDATE ORDER
 // ==========================================
-router.put("/:id", protect, adminOnly, async (req, res) => {
+router.put('/:id', protect, adminOnly, async (req, res) => {
   try {
     const allowedStatuses = ['Pending Verification', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
     const updates = { ...req.body };
@@ -304,12 +261,13 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
       updates.shippingStatus = updates.shippingStatus || 'Shipped';
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      { $set: updates },
-      { new: true }
-    );
-    res.status(200).json(updatedOrder);
+    const updatedOrder = await Order.findByPk(req.params.id);
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    await updatedOrder.update(updates);
+    res.status(200).json(withMongoId(updatedOrder));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -320,15 +278,15 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
 // ==========================================
 router.get('/myorders', protect, async (req, res) => {
   try {
-    const userId = req.user?._id ? String(req.user._id) : null;
+    const userId = req.user?.id ? String(req.user.id) : req.user?._id ? String(req.user._id) : null;
     if (!userId) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.status(401).json({ message: 'Not authorized' });
     }
 
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    const orders = await Order.findAll({ where: { userId }, order: [['createdAt', 'DESC']] });
 
     const safeOrders = orders.map(order => ({
-      _id: order._id,
+      _id: String(order.id),
       orderItems: order.orderItems,
       amount: order.amount,
       status: order.status,
@@ -348,7 +306,7 @@ router.get('/myorders', protect, async (req, res) => {
 
     res.status(200).json(safeOrders);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch orders" });
+    res.status(500).json({ message: 'Failed to fetch orders' });
   }
 });
 
@@ -357,12 +315,13 @@ router.get('/myorders', protect, async (req, res) => {
 // ==========================================
 router.get('/:userId', async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 });
-    res.status(200).json(orders);
+    const orders = await Order.findAll({ where: { userId: req.params.userId }, order: [['createdAt', 'DESC']] });
+    res.status(200).json(orders.map(withMongoId));
   } catch (err) {
     res.status(500).json(err);
   }
 });
+
 // ==========================================
 // 7. GUEST TRACK ORDER (Public)
 // ==========================================
@@ -370,39 +329,22 @@ router.post('/track', async (req, res) => {
   try {
     const { orderId, phone } = req.body;
 
-    // 1. Basic Validation
     if (!orderId || !phone) {
-      return res.status(400).json({ success: false, message: "Order ID and Phone are required" });
+      return res.status(400).json({ success: false, message: 'Order ID and Phone are required' });
     }
 
-    // 2. Find Order
-    // We use try/catch inside here specifically because if 'orderId' 
-    // is not a valid MongoDB ObjectId (e.g. user typed "123"), Mongoose will crash.
-    let order;
-    try {
-       order = await Order.findById(orderId);
-    } catch (err) {
-       // If ID format is wrong, just return not found
-       return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
-    // 3. Check if order exists
+    const order = await Order.findByPk(orderId);
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // 4. Verify Phone Number (Security)
-    // We compare the phone stored in the order address vs the one entered
-    // We use String() to ensure we don't fail on number vs string types
-    const orderPhone = order.address?.phone || "";
-    
+    const orderPhone = order.address?.phone || '';
     if (String(orderPhone) !== String(phone)) {
-      return res.status(401).json({ success: false, message: "Phone number does not match this order" });
+      return res.status(401).json({ success: false, message: 'Phone number does not match this order' });
     }
 
-    // 5. Return Customer-Safe Data Only
     res.status(200).json({
-      _id: order._id,
+      _id: String(order.id),
       orderItems: order.orderItems,
       amount: order.amount,
       status: order.status,
@@ -417,10 +359,10 @@ router.post('/track', async (req, res) => {
       shippedAt: order.shippedAt,
       deliveredAt: order.deliveredAt
     });
-
   } catch (err) {
-    console.error("Tracking Error:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error('Tracking Error:', err);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
+
 module.exports = router;

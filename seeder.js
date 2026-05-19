@@ -1,11 +1,9 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
 const colors = require('colors');
-const connectDB = require('./db');
+const { connectDB } = require('./db');
 
 // --- LOAD MODELS ---
 const Product = require('./models/Product');
-const User = require('./models/User');
 const Store = require('./models/Store');
 const City = require('./models/City');
 
@@ -37,16 +35,14 @@ const runSeeder = async () => {
 const importData = async () => {
   try {
     console.log("🧹 Clearing old data...".yellow);
-    await Product.deleteMany();
-    await User.deleteMany();
-    await Store.deleteMany();
-    await City.deleteMany();
+    await Product.destroy({ where: {} });
+    await Store.destroy({ where: {} });
+    await City.destroy({ where: {} });
 
     console.log("🌱 Inserting new data...".yellow);
-    // You can add Users here too if you have a users.js file
-    await Product.insertMany(products);
-    await Store.insertMany(storeData);
-    await City.insertMany(cityData);
+    await Product.bulkCreate(products);
+    await Store.bulkCreate(storeData);
+    await City.bulkCreate(cityData);
 
     console.log('✅ Data Imported Successfully!'.green.inverse);
     process.exit();
@@ -60,10 +56,9 @@ const importData = async () => {
 const destroyData = async () => {
   try {
     console.log("🔥 Destroying data...".red);
-    await Product.deleteMany();
-    await User.deleteMany();
-    await Store.deleteMany();
-    await City.deleteMany();
+    await Product.destroy({ where: {} });
+    await Store.destroy({ where: {} });
+    await City.destroy({ where: {} });
 
     console.log('🛑 Data Destroyed!'.red.inverse);
     process.exit();

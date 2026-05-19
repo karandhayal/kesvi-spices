@@ -12,9 +12,10 @@ process.on('unhandledRejection', (reason) => {
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const connectDB = require("./db");
+const { connectDB } = require("./db");
 const { protect, adminOnly } = require('./middleware/authMiddleware');
 const MembershipRequest = require('./models/MembershipRequest');
+const withMongoId = require('./utils/withMongoId');
 
 const app = express();
 const storeRoute = require('./routes/store');
@@ -54,7 +55,9 @@ app.options(/.*/, cors(corsOptions));
 console.log('Starting Parosa backend...');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
 console.log('PORT:', process.env.PORT || 'not set, using fallback');
-console.log('MONGO_URI configured:', Boolean(process.env.MONGO_URI));
+console.log('DB_HOST configured:', Boolean(process.env.DB_HOST));
+console.log('DB_NAME configured:', Boolean(process.env.DB_NAME));
+console.log('DB_USER configured:', Boolean(process.env.DB_USER));
 console.log('JWT_SECRET configured:', Boolean(process.env.JWT_SECRET));
 console.log('RAZORPAY_KEY_ID configured:', Boolean(process.env.RAZORPAY_KEY_ID));
 console.log('SHIPROCKET_EMAIL configured:', Boolean(process.env.SHIPROCKET_EMAIL));
@@ -75,12 +78,8 @@ app.use(express.json());
    3. DATABASE CONNECTION
 ================================ */
 
-// Attempt to connect to MongoDB; do not exit process here so Hostinger can keep the app running.
-connectDB()
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => {
-    console.error('MongoDB connection failed:', err.message);
-  });
+// Attempt to connect to MySQL; do not exit process here so Hostinger can keep the app running.
+connectDB();
 
 /* ================================
    4. HEALTH CHECK & WELCOME ROUTES
@@ -98,7 +97,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "API healthy",
-    mongoConfigured: Boolean(process.env.MONGO_URI),
+    mysqlConfigured: Boolean(process.env.DB_HOST && process.env.DB_NAME),
     jwtConfigured: Boolean(process.env.JWT_SECRET),
   });
 });
@@ -110,8 +109,9 @@ app.get("/api/health", (req, res) => {
 app.get("/debug/products", async (req, res) => {
   try {
     const Product = require("./models/Product");
-    const products = await Product.find({});
-    res.json({ count: products.length, products });
+    const withMongoId = require('./utils/withMongoId');
+    const products = await Product.findAll();
+    res.json({ count: products.length, products: products.map(withMongoId) });
   } catch (err) {
     console.error("Debug products error:", err);
     res.status(500).json({ message: "Debug failed", error: err.message });
@@ -143,24 +143,20 @@ app.post('/api/membership-requests', async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    const existingPending = await MembershipRequest.findOne({
-      phone,
-      status: 'pending',
-    });
+    const existingPending = await MembershipRequest.findOne({ where: { phone, status: 'pending' } });
     if (existingPending) {
       return res.status(409).json({
         message: 'A pending membership request already exists for this phone number.',
       });
     }
 
-    const newRequest = new MembershipRequest({
+    const savedRequest = await MembershipRequest.create({
       fullName,
       phone,
       address,
     });
 
-    const savedRequest = await newRequest.save();
-    res.status(201).json(savedRequest);
+    res.status(201).json(withMongoId(savedRequest));
   } catch (error) {
     console.error("Error creating membership request:", error);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -173,8 +169,8 @@ app.get('/api/membership-requests/stats', async (req, res) => {
     const totalSlots = Number(process.env.MEMBERSHIP_TOTAL_SLOTS || 100);
 
     const [acceptedCount, pendingCount] = await Promise.all([
-      MembershipRequest.countDocuments({ status: 'accepted' }),
-      MembershipRequest.countDocuments({ status: 'pending' }),
+      MembershipRequest.count({ where: { status: 'accepted' } }),
+      MembershipRequest.count({ where: { status: 'pending' } }),
     ]);
 
     const slotsLeft = Math.max(totalSlots - acceptedCount, 0);
@@ -195,8 +191,8 @@ app.get('/api/membership-requests/stats', async (req, res) => {
 app.get('/api/membership-requests', protect, adminOnly, async (req, res) => {
   try {
     // Sort by newest first
-    const requests = await MembershipRequest.find({}).sort({ createdAt: -1 });
-    res.json(requests);
+    const requests = await MembershipRequest.findAll({ order: [['createdAt', 'DESC']] });
+    res.json(requests.map(withMongoId));
   } catch (error) {
     console.error("Error fetching requests:", error);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -211,7 +207,7 @@ app.put('/api/membership-requests/:id/status', protect, adminOnly, async (req, r
       return res.status(400).json({ message: 'Invalid status value.' });
     }
 
-    const request = await MembershipRequest.findById(req.params.id);
+    const request = await MembershipRequest.findByPk(req.params.id);
     if (!request) {
       return res.status(404).json({ message: 'Membership request not found.' });
     }
@@ -228,8 +224,8 @@ app.put('/api/membership-requests/:id/status', protect, adminOnly, async (req, r
       request.acceptedAt = null;
     }
 
-    const updatedRequest = await request.save();
-    res.json(updatedRequest);
+    await request.save();
+    res.json(withMongoId(request));
   } catch (error) {
     console.error("Error updating membership request status:", error);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -249,17 +245,10 @@ app.use((err, req, res, next) => {
 });
 
 /* ================================
-   8. START SERVER (CLOUD RUN FIX)
+   8. START SERVER
 ================================ */
 
-// 🔥 MUST be 8080 for Cloud Run
 const PORT = process.env.PORT || 8080;
-
-// Startup logging (do NOT log secrets)
-console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
-console.log('MONGO_URI configured:', Boolean(process.env.MONGO_URI));
-console.log('JWT_SECRET configured:', Boolean(process.env.JWT_SECRET));
-console.log('PORT:', PORT);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

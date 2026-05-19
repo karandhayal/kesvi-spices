@@ -1,10 +1,19 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const CitySchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
-  googleMapsUrl: { type: String }
-}, { timestamps: true });
+const City = sequelize.define('City', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false, unique: true },
+  state: { type: DataTypes.STRING, allowNull: true },
+  lat: { type: DataTypes.FLOAT, allowNull: true },
+  lng: { type: DataTypes.FLOAT, allowNull: true },
+  latitude: { type: DataTypes.FLOAT, allowNull: true },
+  longitude: { type: DataTypes.FLOAT, allowNull: true },
+  googleMapsUrl: { type: DataTypes.TEXT, allowNull: true },
+  isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
+});
 
-module.exports = mongoose.model('City', CitySchema);
+module.exports = City;

@@ -1,12 +1,13 @@
 const router = require('express').Router();
 const Store = require('../models/Store');
 const City = require('../models/City');
+const withMongoId = require('../utils/withMongoId');
 
 // 1. GET ALL STORES
 router.get('/', async (req, res) => {
   try {
-    const stores = await Store.find();
-    res.status(200).json(stores);
+    const stores = await Store.findAll();
+    res.status(200).json(stores.map(withMongoId));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -15,8 +16,8 @@ router.get('/', async (req, res) => {
 // 2. GET ALL CITIES (For your dropdown logic)
 router.get('/cities', async (req, res) => {
   try {
-    const cities = await City.find();
-    res.status(200).json(cities);
+    const cities = await City.findAll();
+    res.status(200).json(cities.map(withMongoId));
   } catch (err) {
     res.status(500).json(err);
   }

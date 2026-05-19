@@ -1,11 +1,17 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const CouponSchema = new mongoose.Schema({
-  code: { type: String, required: true, unique: true, uppercase: true },
-  type: { type: String, enum: ['percent', 'flat'], required: true }, // 'percent' = % off, 'flat' = ₹ off
-  value: { type: Number, required: true }, // e.g., 10 (for 10%) or 100 (for ₹100)
-  minOrder: { type: Number, default: 0 },
-  isActive: { type: Boolean, default: true }
+const Coupon = sequelize.define('Coupon', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  code: { type: DataTypes.STRING, allowNull: false, unique: true },
+  discountType: { type: DataTypes.STRING, allowNull: false },
+  discountValue: { type: DataTypes.FLOAT, allowNull: false },
+  minOrderValue: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 0 },
+  isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+  expiresAt: { type: DataTypes.DATE, allowNull: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
 });
 
-module.exports = mongoose.model('Coupon', CouponSchema);
+module.exports = Coupon;

@@ -1,38 +1,21 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String },
-  
-  email: { 
-    type: String, 
-    unique: true, 
-    sparse: true,
-    // RECOMMENDATION: Since phone is now optional, you might want to make email mandatory:
-    required: true 
-  },
+const User = sequelize.define('User', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: true },
+  email: { type: DataTypes.STRING, allowNull: true, unique: true },
+  phone: { type: DataTypes.STRING, allowNull: true, unique: true },
+  password: { type: DataTypes.STRING, allowNull: true },
+  isAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
+  role: { type: DataTypes.STRING, defaultValue: 'user' },
+  isEmailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  isPhoneVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  otp: { type: DataTypes.STRING, allowNull: true },
+  otpExpires: { type: DataTypes.DATE, allowNull: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
+});
 
-  phone: { 
-    type: String, 
-    required: false, // 👈 CHANGE 1: Set to false
-    unique: true,
-    sparse: true     // 👈 CHANGE 2: Add this!
-  }, 
-
-  password: { type: String }, 
-  isAdmin: { type: Boolean, default: false },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  
-  // Verification Flags
-  isEmailVerified: { type: Boolean, default: false },
-  isPhoneVerified: { type: Boolean, default: false },
-
-  // OTP Storage
-  otp: { type: String },
-  otpExpires: { type: Date }
-}, { timestamps: true });
-
-module.exports = mongoose.model('User', UserSchema);
+module.exports = User;

@@ -28,7 +28,7 @@ const getShiprocketToken = async () => {
 router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await Order.findById(orderId);
+        const order = await Order.findByPk(orderId);
         
         if (!order) return res.status(404).json({ message: "Order not found" });
 
@@ -65,7 +65,7 @@ router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
 
         // 3. Prepare Payload
         const payload = {
-            order_id: order._id,
+            order_id: String(order.id),
             order_date: date,
             pickup_location: "Primary", // ⚠️ MUST match your Shiprocket 'Pickup Nickname'
             
@@ -161,7 +161,7 @@ router.post('/create-order/:id', protect, adminOnly, async (req, res) => {
 // ==========================================
 router.get('/track/:id', protect, adminOnly, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findByPk(req.params.id);
         
         const shipmentId = order?.shiprocketShipmentId || order?.shipmentId;
 

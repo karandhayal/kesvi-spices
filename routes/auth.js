@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const axios = require('axios'); // Required for WhatsApp API
+const withMongoId = require('../utils/withMongoId');
 
 // --- ENV VARIABLES (Add these to your .env) ---
 const WA_PHONE_ID = process.env.WA_PHONE_NUMBER_ID;
@@ -18,7 +19,7 @@ const generateAuthToken = (user) => {
   const resolvedRole = user.role === 'admin' || user.isAdmin === true ? 'admin' : 'user';
 
   return jwt.sign(
-    { id: user._id, isAdmin: user.isAdmin, role: resolvedRole },
+    { id: user.id, isAdmin: user.isAdmin, role: resolvedRole },
     JWT_SECRET
   );
 };
@@ -50,9 +51,9 @@ router.post('/send-mobile-otp', async (req, res) => {
 
   try {
     // Find or Create Temporary User
-    let user = await User.findOne({ phone: formattedPhone });
+    let user = await User.findOne({ where: { phone: formattedPhone } });
     if (!user) {
-      user = new User({ phone: formattedPhone, isPhoneVerified: false });
+      user = User.build({ phone: formattedPhone, isPhoneVerified: false });
     }
     user.otp = otp;
     user.otpExpires = otpExpires;
@@ -93,7 +94,7 @@ router.post('/verify-mobile-otp', async (req, res) => {
   const formattedPhone = cleaned.length === 10 ? `91${cleaned}` : cleaned;
 
   try {
-    const user = await User.findOne({ phone: formattedPhone });
+    const user = await User.findOne({ where: { phone: formattedPhone } });
 
     if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
@@ -114,7 +115,8 @@ router.post('/verify-mobile-otp', async (req, res) => {
     const token = generateAuthToken(user);
     
     // Return User Data (excluding password)
-    const { password, ...userData } = user._doc;
+    const userData = withMongoId(user);
+    delete userData.password;
     res.status(200).json({ success: true, user: userData, token });
 
   } catch (err) {
@@ -130,7 +132,7 @@ router.post('/verify-mobile-otp', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const userExists = await User.findOne({ email: req.body.email });
+    const userExists = await User.findOne({ where: { email: req.body.email } });
     if (userExists && userExists.isEmailVerified) {
       return res.status(400).json({ success: false, message: "Email already exists" });
     }
@@ -141,8 +143,8 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     // Upsert logic to handle if phone user adds email later
-    let user = await User.findOne({ email: req.body.email });
-    if (!user) user = new User({ ...req.body, phone: req.body.phone, password: hashedPassword });
+    let user = await User.findOne({ where: { email: req.body.email } });
+    if (!user) user = User.build({ ...req.body, phone: req.body.phone, password: hashedPassword });
     else {
         user.name = req.body.name;
         user.password = hashedPassword;
@@ -171,7 +173,7 @@ router.post('/verify-email', async (req, res) => {
   // Your existing verify logic adapted to return JSON format
   try {
     const { email, otp } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user || user.otp !== otp) return res.status(400).json({ success: false, message: "Invalid OTP" });
 
     user.isEmailVerified = true;
@@ -179,7 +181,8 @@ router.post('/verify-email', async (req, res) => {
     await user.save();
 
     const token = generateAuthToken(user);
-    const { password, ...others } = user._doc;
+    const others = withMongoId(user);
+    delete others.password;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error" });
@@ -188,14 +191,15 @@ router.post('/verify-email', async (req, res) => {
 
 router.post('/login-email', async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ where: { email: req.body.email } });
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
     
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) return res.status(400).json({ success: false, message: "Wrong password" });
 
     const token = generateAuthToken(user);
-    const { password, ...others } = user._doc;
+    const others = withMongoId(user);
+    delete others.password;
     res.status(200).json({ success: true, user: others, token });
   } catch (err) {
     res.status(500).json({ success: false, message: "Login failed" });

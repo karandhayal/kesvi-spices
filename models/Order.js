@@ -1,80 +1,41 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const OrderSchema = new mongoose.Schema({
-  // 1. User Handling
-  userId: { type: String, required: false }, // False allows Guest Checkout
-  
-  // 2. Order Items
-  orderItems: [
-    {
-      productId: { type: String },
-      product: { type: String },
-      name: String,
-      title: String,
-      quantity: { type: Number, default: 1 },
-      price: Number,
-      variant: String,
-      image: String
-    }
-  ],
+const Order = sequelize.define('Order', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: true },
+  orderItems: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+  address: { type: DataTypes.JSON, allowNull: false },
+  amount: { type: DataTypes.FLOAT, allowNull: false },
+  itemsPrice: { type: DataTypes.FLOAT, allowNull: true },
+  subtotal: { type: DataTypes.FLOAT, allowNull: true },
+  shippingFee: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 0 },
+  taxPrice: { type: DataTypes.FLOAT, allowNull: true },
+  discount: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 0 },
+  couponCode: { type: DataTypes.STRING, allowNull: true },
+  paymentMethod: { type: DataTypes.STRING, allowNull: false },
+  isPaid: { type: DataTypes.BOOLEAN, defaultValue: false },
+  paymentStatus: { type: DataTypes.STRING, defaultValue: 'Pending' },
+  paymentProvider: { type: DataTypes.STRING, allowNull: true },
+  razorpayOrderId: { type: DataTypes.STRING, allowNull: true },
+  razorpayPaymentId: { type: DataTypes.STRING, allowNull: true },
+  paymentResult: { type: DataTypes.JSON, allowNull: true },
+  paidAt: { type: DataTypes.DATE, allowNull: true },
+  status: { type: DataTypes.STRING, defaultValue: 'Processing' },
+  shippingStatus: { type: DataTypes.STRING, allowNull: true },
+  shiprocketOrderId: { type: DataTypes.STRING, allowNull: true },
+  shiprocketShipmentId: { type: DataTypes.STRING, allowNull: true },
+  shipmentId: { type: DataTypes.STRING, allowNull: true },
+  awbCode: { type: DataTypes.STRING, allowNull: true },
+  courierName: { type: DataTypes.STRING, allowNull: true },
+  trackingUrl: { type: DataTypes.TEXT, allowNull: true },
+  expectedDeliveryDate: { type: DataTypes.DATE, allowNull: true },
+  shippedAt: { type: DataTypes.DATE, allowNull: true },
+  deliveredAt: { type: DataTypes.DATE, allowNull: true },
+  cancelledAt: { type: DataTypes.DATE, allowNull: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
+});
 
-  // --- Payment & Costs ---
-  amount: { type: Number, required: true },   // Final amount to pay
-  subtotal: { type: Number, required: true }, // Cart total before fees
-  discount: { type: Number, default: 0 },     
-  couponCode: { type: String }, 
-  shippingFee: { type: Number, default: 0 },
-
-  // --- Address ---
-  address: { 
-    fullName: { type: String, required: true },
-    phone: { type: String, required: true },
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    pincode: { type: String, required: true },
-    country: { type: String, default: "India" },
-    email: { type: String }
-  },
-  
-  // --- Order Status ---
-  status: {
-    type: String,
-    enum: ['Pending Verification', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
-    default: "Processing"
-  },
-  
-  // --- Payment Details ---
-  paymentMethod: { type: String, enum: ['COD', 'ONLINE', 'UPI_MANUAL'], required: true },
-  
-  // ✅ CRITICAL FIX: Match the 'orders.js' payload structure
-  paymentResult: {
-    id: String,      // Stores the UPI Transaction ID / UTR
-    status: String,  // Stores "Pending Verification"
-    email_address: String,
-    update_time: String
-  },
-
-  isPaid: { type: Boolean, default: false }, // ✅ Added to track payment status easily
-  paymentStatus: { type: String, default: "Pending" },
-  paymentProvider: { type: String },
-  razorpayOrderId: { type: String },
-  razorpayPaymentId: { type: String },
-  paidAt: { type: Date },
-
-  // --- SHIPROCKET INTEGRATION FIELDS ---
-  shiprocketOrderId: { type: Number },
-  shiprocketShipmentId: { type: Number },
-  shipmentId: { type: Number },
-  awbCode: { type: String },
-  courierName: { type: String },
-  trackingUrl: { type: String },
-  shippingStatus: { type: String, default: "Pending" },
-  expectedDeliveryDate: { type: Date },
-  shippedAt: { type: Date },
-  deliveredAt: { type: Date },
-  cancelledAt: { type: Date }
-
-}, { timestamps: true });
-
-module.exports = mongoose.model('Order', OrderSchema);
+module.exports = Order;

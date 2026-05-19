@@ -3,7 +3,6 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
-const mongoose = require('mongoose');
 
 // Helper to lazily create Razorpay instance and fail fast if env vars missing
 const getRazorpayInstance = () => {
@@ -15,6 +14,22 @@ const getRazorpayInstance = () => {
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
   });
+};
+
+const resolveProduct = async (item) => {
+  const productId = item.productId || item.product || item._id || item.id;
+  const parsedId = Number(productId);
+  let product = null;
+
+  if (Number.isInteger(parsedId) && parsedId > 0) {
+    product = await Product.findByPk(parsedId);
+  }
+
+  if (!product && item.slug) {
+    product = await Product.findOne({ where: { slug: item.slug } });
+  }
+
+  return product;
 };
 
 // ==========================================
@@ -35,15 +50,7 @@ router.post('/create-order', async (req, res) => {
         return res.status(400).json({ success: false, message: "Invalid quantity" });
       }
 
-      const productId = item.productId || item.product || item._id || item.id;
-      let product = null;
-      if (productId && mongoose.isValidObjectId(productId)) {
-        product = await Product.findById(productId);
-      }
-
-      if (!product && item.slug) {
-        product = await Product.findOne({ slug: item.slug });
-      }
+      const product = await resolveProduct(item);
 
       if (!product) {
         return res.status(400).json({ success: false, message: "Product not found" });
@@ -73,11 +80,13 @@ router.post('/create-order', async (req, res) => {
 
     let discount = 0;
     if (couponCode) {
-      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
-      if (coupon && safeSubtotal >= coupon.minOrder) {
-        discount = coupon.type === 'percent'
-          ? (safeSubtotal * coupon.value) / 100
-          : coupon.value;
+      const coupon = await Coupon.findOne({
+        where: { code: couponCode.toUpperCase(), isActive: true }
+      });
+      if (coupon && safeSubtotal >= Number(coupon.minOrderValue || 0)) {
+        discount = coupon.discountType === 'percent'
+          ? (safeSubtotal * Number(coupon.discountValue)) / 100
+          : Number(coupon.discountValue);
       }
     }
 

@@ -1,21 +1,17 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const membershipRequestSchema = new mongoose.Schema(
-  {
-    fullName: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true },
-    status: {
-      type: String,
-      enum: ['pending', 'accepted', 'rejected'],
-      default: 'pending',
-    },
-    acceptedAt: { type: Date, default: null },
-    rejectedAt: { type: Date, default: null },
-  },
-  {
-    timestamps: true,
-  }
-);
+const MembershipRequest = sequelize.define('MembershipRequest', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  fullName: { type: DataTypes.STRING, allowNull: false },
+  phone: { type: DataTypes.STRING, allowNull: false },
+  address: { type: DataTypes.TEXT, allowNull: false },
+  status: { type: DataTypes.STRING, defaultValue: 'pending' },
+  acceptedAt: { type: DataTypes.DATE, allowNull: true },
+  rejectedAt: { type: DataTypes.DATE, allowNull: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
+});
 
-module.exports = mongoose.model('MembershipRequest', membershipRequestSchema);
+module.exports = MembershipRequest;

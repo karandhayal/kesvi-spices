@@ -1,16 +1,24 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../db');
 
-const StoreSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  address: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  zip: { type: String, required: true },
-  phone: { type: String },
-  timings: { type: String },
-  lat: { type: Number, required: true }, // Latitude
-  lng: { type: Number, required: true }, // Longitude
-  googleMapsUrl: { type: String, required: true }
-}, { timestamps: true });
+const Store = sequelize.define('Store', {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  address: { type: DataTypes.TEXT, allowNull: false },
+  city: { type: DataTypes.STRING, allowNull: false },
+  state: { type: DataTypes.STRING, allowNull: false },
+  pincode: { type: DataTypes.STRING, allowNull: true },
+  zip: { type: DataTypes.STRING, allowNull: true },
+  phone: { type: DataTypes.STRING, allowNull: true },
+  timings: { type: DataTypes.STRING, allowNull: true },
+  lat: { type: DataTypes.FLOAT, allowNull: true },
+  lng: { type: DataTypes.FLOAT, allowNull: true },
+  latitude: { type: DataTypes.FLOAT, allowNull: true },
+  longitude: { type: DataTypes.FLOAT, allowNull: true },
+  googleMapsUrl: { type: DataTypes.TEXT, allowNull: true },
+}, {
+  timestamps: true,
+  freezeTableName: true,
+});
 
-module.exports = mongoose.model('Store', StoreSchema);
+module.exports = Store;

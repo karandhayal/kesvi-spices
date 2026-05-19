@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
+const withMongoId = require('../utils/withMongoId');
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products);
+    const products = await Product.findAll();
+    res.json(products.map(withMongoId));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error: Unable to fetch products' });
@@ -22,10 +23,10 @@ router.get('/', async (req, res) => {
 router.get('/:slug', async (req, res) => {
   try {
     // We search by 'slug', not '_id'
-    const product = await Product.findOne({ slug: req.params.slug });
+    const product = await Product.findOne({ where: { slug: req.params.slug } });
 
     if (product) {
-      res.json(product);
+      res.json(withMongoId(product));
     } else {
       res.status(404).json({ message: 'Product not found' });
     }
@@ -51,17 +52,16 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: 'countInStock must be a non-negative integer' });
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { $set: { countInStock: parsedStock } },
-      { new: true }
-    );
+    const updatedProduct = await Product.findByPk(req.params.id);
 
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.status(200).json(updatedProduct);
+    updatedProduct.countInStock = parsedStock;
+    await updatedProduct.save();
+
+    res.status(200).json(withMongoId(updatedProduct));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error: Unable to update product' });
