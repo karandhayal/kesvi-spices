@@ -116,10 +116,7 @@ Frontend: https://darkseagreen-lemur-822131.hostingersite.com
 
 ## 🗑️ OLD REFERENCES REMOVED
 
-❌ Removed all instances of:
-```
-https://parosa-755646660410.asia-south2.run.app
-```
+✅ Removed all instances of the old Cloud Run URL from source files.
 
 ✅ Verification: Grep search shows 0 matches in client/src/
 

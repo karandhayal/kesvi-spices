@@ -238,14 +238,19 @@ router.post('/create', async (req, res) => {
       }
 
       const body = `${razorpay_order_id}|${razorpay_payment_id}`;
-      const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-        .update(body.toString())
-        .digest('hex');
+        if (!process.env.RAZORPAY_KEY_SECRET) {
+          console.error('Razorpay secret not configured for order verification');
+          return res.status(500).json({ success: false, message: 'Payment service is not configured' });
+        }
 
-      if (expectedSignature !== razorpay_signature) {
-        return res.status(400).json({ success: false, message: 'Invalid Razorpay signature' });
-      }
+        const expectedSignature = crypto
+          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+          .update(body.toString())
+          .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+          return res.status(400).json({ success: false, message: 'Invalid Razorpay signature' });
+        }
 
       newOrder.isPaid = true;
       newOrder.paymentStatus = 'Paid';

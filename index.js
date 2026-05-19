@@ -1,4 +1,13 @@
-require("dotenv").config();
+require('dotenv').config({ quiet: true });
+
+// Global crash handlers for clearer runtime diagnostics
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err && (err.stack || err));
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
 
 const express = require("express");
 const cors = require("cors");
@@ -22,20 +31,33 @@ const allowedOrigins = [
   'http://localhost:5173'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error('Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// Use a safe preflight handler for all routes (Express 5 compatible)
+app.options(/.*/, cors(corsOptions));
+
+// Startup environment diagnostics (do NOT print secrets)
+console.log('Starting Parosa backend...');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('PORT:', process.env.PORT || 'not set, using fallback');
+console.log('MONGO_URI configured:', Boolean(process.env.MONGO_URI));
+console.log('JWT_SECRET configured:', Boolean(process.env.JWT_SECRET));
+console.log('RAZORPAY_KEY_ID configured:', Boolean(process.env.RAZORPAY_KEY_ID));
+console.log('SHIPROCKET_EMAIL configured:', Boolean(process.env.SHIPROCKET_EMAIL));
 
 /* ================================
    2. SECURITY + BODY PARSING
@@ -53,18 +75,32 @@ app.use(express.json());
    3. DATABASE CONNECTION
 ================================ */
 
-connectDB();
+// Attempt to connect to MongoDB; do not exit process here so Hostinger can keep the app running.
+connectDB()
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => {
+    console.error('MongoDB connection failed:', err.message);
+  });
 
 /* ================================
    4. HEALTH CHECK & WELCOME ROUTES
 ================================ */
 
 app.get("/", (req, res) => {
-  res.status(200).json({ success: true, message: "Parosa API is running" });
+  res.status(200).json({
+    success: true,
+    message: "Parosa API is running",
+    env: process.env.NODE_ENV || "development",
+  });
 });
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, message: "API healthy" });
+  res.status(200).json({
+    success: true,
+    message: "API healthy",
+    mongoConfigured: Boolean(process.env.MONGO_URI),
+    jwtConfigured: Boolean(process.env.JWT_SECRET),
+  });
 });
 
 /* ================================
@@ -219,6 +255,12 @@ app.use((err, req, res, next) => {
 // 🔥 MUST be 8080 for Cloud Run
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+// Startup logging (do NOT log secrets)
+console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('MONGO_URI configured:', Boolean(process.env.MONGO_URI));
+console.log('JWT_SECRET configured:', Boolean(process.env.JWT_SECRET));
+console.log('PORT:', PORT);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

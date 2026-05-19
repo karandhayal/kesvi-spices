@@ -5,12 +5,17 @@ const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const mongoose = require('mongoose');
 
-// Initialize Razorpay Instance
-// Make sure these variables are in your backend .env file
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Helper to lazily create Razorpay instance and fail fast if env vars missing
+const getRazorpayInstance = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    throw new Error('Razorpay environment variables are not configured');
+  }
+
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+};
 
 // ==========================================
 // 1. CREATE ORDER (Initiate Payment)
@@ -87,6 +92,14 @@ router.post('/create-order', async (req, res) => {
       payment_capture: 1 // Auto capture payment
     };
 
+    let razorpay;
+    try {
+      razorpay = getRazorpayInstance();
+    } catch (e) {
+      console.error('Razorpay not configured:', e.message);
+      return res.status(500).json({ success: false, message: 'Payment service is not configured' });
+    }
+
     const order = await razorpay.orders.create(options);
 
     // Send order details to frontend
@@ -116,6 +129,11 @@ router.post('/verify-payment', async (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     // 2. Generate HMAC SHA256 signature using your Secret Key
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay secret not configured for verify-payment');
+      return res.status(500).json({ success: false, message: 'Payment service is not configured' });
+    }
+
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
