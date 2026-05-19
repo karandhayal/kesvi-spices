@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from './config/api';
 
 // 1. Import Components
 import Navbar from './components/Navbar';
@@ -32,12 +33,8 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext'; 
 
 // --- GLOBAL API CONFIGURATION ---
-// STEP A: Uncomment "localhost" when working on your computer
-// axios.defaults.baseURL = "http://localhost:5000"; 
-
-// STEP B: Uncomment "Render URL" when pushing to GitHub/Vercel
-axios.defaults.baseURL = "https://parosa-755646660410.asia-south2.run.app"; 
-
+// Uses environment variable REACT_APP_API_URL or defaults to Hostinger backend
+axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = false; 
 
 // --- HELPER COMPONENT FOR LAYOUT LOGIC ---

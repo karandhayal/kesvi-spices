@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../config/api';
+
 // 1. Helper to get or create a User ID
 function getUserId() {
   let userId = localStorage.getItem("parosa_user_id");
@@ -14,7 +16,7 @@ export const addToCart = async (product) => {
   const userId = getUserId();
 
   try {
-    const response = await fetch('https://parosa-755646660410.asia-south2.run.app/api/cart/add', {
+    const response = await fetch(`${API_BASE_URL}/cart/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

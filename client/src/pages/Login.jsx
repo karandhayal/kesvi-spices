@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import the Context Hook
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios'; 
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 // We still need axios for WhatsApp OTP (since that's not in AuthContext yet), 
-// but we will use the BASE_URL from context or hardcode it for now.
-const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
+// but we will use the BASE_URL from config.
+const BASE_URL = API_BASE_URL;
 
 const Login = () => {
   const [authMethod, setAuthMethod] = useState('phone'); 

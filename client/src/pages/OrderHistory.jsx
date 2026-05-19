@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { 
   Package, Search, Truck, Calendar, MapPin, 
   ChevronRight, ArrowRight, ShoppingBag, X, Loader2
 } from 'lucide-react';
 
-const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
+const BASE_URL = API_BASE_URL;
 
 const OrderHistory = () => {
   // --- STATE ---

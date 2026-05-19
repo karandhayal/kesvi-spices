@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapPin, Navigation, ChevronRight, Phone, Clock, Loader2, Map } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
-// Change this to your actual backend URL (localhost for dev, actual URL for prod)
-const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api"; 
+const BASE_URL = API_BASE_URL; 
 
 // --- HAVERSINE FORMULA (Distance Calculation) ---
 const calculateDistance = (lat1, lon1, lat2, lon2) => {

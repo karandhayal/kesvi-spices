@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { useAuth, BASE_URL } from './AuthContext'; 
+import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '../config/api';
+
+const BASE_URL = API_BASE_URL; 
 
 const CartContext = createContext();
 

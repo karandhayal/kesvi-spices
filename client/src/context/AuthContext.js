@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
 // ✅ CENTRALIZED BASE URL (Easy to change later)
-export const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api"; 
+export const BASE_URL = API_BASE_URL; 
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

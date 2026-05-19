@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { ShoppingBag, ShieldCheck, Truck, Award, Check } from 'lucide-react'; 
 import { useCart } from '../context/CartContext';
 
@@ -23,9 +24,8 @@ const ProductDetails = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        // Ensure this points to your deployed backend
-        const apiUrl = 'https://parosa-755646660410.asia-south2.run.app'; 
-        const { data } = await axios.get(`${apiUrl}/api/products/${slug}`);
+        // Use centralized API config
+        const { data } = await axios.get(`${API_BASE_URL}/products/${slug}`);
         
         setProduct(data);
         

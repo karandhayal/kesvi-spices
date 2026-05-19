@@ -15,6 +15,7 @@ const storeRoute = require('./routes/store');
 ================================ */
 
 const allowedOrigins = [
+  'https://darkseagreen-lemur-822131.hostingersite.com',
   'https://parosa.co.in',
   'https://www.parosa.co.in',
   'http://localhost:3000',
@@ -55,11 +56,15 @@ app.use(express.json());
 connectDB();
 
 /* ================================
-   4. HEALTH CHECK
+   4. HEALTH CHECK & WELCOME ROUTES
 ================================ */
 
 app.get("/", (req, res) => {
-  res.status(200).send("API is running...");
+  res.status(200).json({ success: true, message: "Parosa API is running" });
+});
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ success: true, message: "API healthy" });
 });
 
 /* ================================

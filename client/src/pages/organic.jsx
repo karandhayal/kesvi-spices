@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // ✅ IMPORT AXIOS
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL } from '../config/api';
 import { 
   Wheat, 
   ShieldCheck, 
@@ -17,8 +18,7 @@ import {
 } from 'lucide-react';
 
 /* --- ASSETS & CONSTANTS --- */
-// ✅ SAME BASE URL AS ADMIN
-const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
+const BASE_URL = API_BASE_URL;
 
 const IMAGES = {
   hero: "/hero-organic-2.jpg", 

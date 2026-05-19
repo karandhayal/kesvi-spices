@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import { 
   LayoutDashboard, ShoppingCart, Package, BarChart3, 
   Search, Truck, RefreshCw, ArrowUpRight, Save, Eye, X, AlertTriangle, Users
 } from 'lucide-react';
 
 // ✅ BASE URL
-const BASE_URL = "https://parosa-755646660410.asia-south2.run.app/api";
+const BASE_URL = API_BASE_URL;
 
 const AdminDashboard = () => {
   const { user } = useAuth();
