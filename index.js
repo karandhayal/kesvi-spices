@@ -25,11 +25,11 @@ const storeRoute = require('./routes/store');
 ================================ */
 
 const allowedOrigins = [
-  'https://darkseagreen-lemur-822131.hostingersite.com',
-  'https://parosa.co.in',
-  'https://www.parosa.co.in',
-  'http://localhost:3000',
-  'http://localhost:5173'
+  "https://parosa.co.in",
+  "https://www.parosa.co.in",
+  "https://darkseagreen-lemur-822131.hostingersite.com",
+  "http://localhost:3000",
+  "http://localhost:5173"
 ];
 
 const corsOptions = {
