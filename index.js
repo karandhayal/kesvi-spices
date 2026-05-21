@@ -138,10 +138,25 @@ app.use('/api/admin/seed', require('./routes/adminSeed'));
 // 1. POST: Create a new request (For the User Form)
 app.post('/api/membership-requests', async (req, res) => {
   try {
-    const { fullName, phone, address } = req.body;
+    const {
+      fullName,
+      phone,
+      address,
+      quantityPerMonthKg,
+      locationLatitude,
+      locationLongitude,
+      locationAccuracy,
+      locationCapturedAt,
+    } = req.body;
     
+    const parsedQuantity = Number(quantityPerMonthKg);
+
     if (!fullName || !phone || !address) {
       return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0) {
+      return res.status(400).json({ message: 'Quantity per month must be greater than 0.' });
     }
 
     const existingPending = await MembershipRequest.findOne({ where: { phone, status: 'pending' } });
@@ -155,6 +170,11 @@ app.post('/api/membership-requests', async (req, res) => {
       fullName,
       phone,
       address,
+      quantityPerMonthKg: parsedQuantity,
+      locationLatitude: locationLatitude !== undefined && locationLatitude !== null && locationLatitude !== '' ? Number(locationLatitude) : null,
+      locationLongitude: locationLongitude !== undefined && locationLongitude !== null && locationLongitude !== '' ? Number(locationLongitude) : null,
+      locationAccuracy: locationAccuracy !== undefined && locationAccuracy !== null && locationAccuracy !== '' ? Number(locationAccuracy) : null,
+      locationCapturedAt: locationCapturedAt || null,
     });
 
     res.status(201).json(withMongoId(savedRequest));

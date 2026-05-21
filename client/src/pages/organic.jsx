@@ -43,15 +43,64 @@ const ApplicationModal = ({ isOpen, onClose, onSubmitted }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
-    address: ''
+    quantityPerMonthKg: '',
+    address: '',
+    locationLatitude: null,
+    locationLongitude: null,
+    locationAccuracy: null,
+    locationCapturedAt: null,
+    locationStatus: 'idle'
   });
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setFormData(prev => ({ ...prev, locationStatus: 'denied' }));
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, locationStatus: 'detecting' }));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          locationLatitude: position.coords.latitude,
+          locationLongitude: position.coords.longitude,
+          locationAccuracy: position.coords.accuracy,
+          locationCapturedAt: new Date().toISOString(),
+          locationStatus: 'captured'
+        }));
+      },
+      (error) => {
+        console.error('Location detection failed', error);
+        setFormData(prev => ({
+          ...prev,
+          locationStatus: error.code === error.PERMISSION_DENIED ? 'denied' : 'error'
+        }));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   // Reset form when closed
   useEffect(() => {
     if (!isOpen) {
         setStep(1);
-        setFormData({ fullName: '', phone: '', address: '' });
+        setFormData({
+          fullName: '',
+          phone: '',
+          quantityPerMonthKg: '',
+          address: '',
+          locationLatitude: null,
+          locationLongitude: null,
+          locationAccuracy: null,
+          locationCapturedAt: null,
+          locationStatus: 'idle'
+        });
+        return;
     }
+
+    detectLocation();
   }, [isOpen]);
 
   const handleChange = (e) => {
@@ -64,7 +113,16 @@ const ApplicationModal = ({ isOpen, onClose, onSubmitted }) => {
 
     try {
       // ✅ API CALL TO SUBMIT REQUEST
-      await axios.post(`${BASE_URL}/membership-requests`, formData);
+      await axios.post(`${BASE_URL}/membership-requests`, {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        address: formData.address,
+        quantityPerMonthKg: formData.quantityPerMonthKg,
+        locationLatitude: formData.locationLatitude,
+        locationLongitude: formData.locationLongitude,
+        locationAccuracy: formData.locationAccuracy,
+        locationCapturedAt: formData.locationCapturedAt
+      });
       setStep(2);
       if (onSubmitted) onSubmitted();
     } catch (error) {
@@ -126,6 +184,20 @@ const ApplicationModal = ({ isOpen, onClose, onSubmitted }) => {
                   />
                 </div>
                 <div>
+                  <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Quantity per Month (in kgs)</label>
+                  <input 
+                    required
+                    name="quantityPerMonthKg"
+                    value={formData.quantityPerMonthKg}
+                    onChange={handleChange}
+                    type="number"
+                    min="1"
+                    step="0.1"
+                    className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors"
+                    placeholder="e.g. 10"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Address</label>
                   <input 
                     required 
@@ -136,6 +208,22 @@ const ApplicationModal = ({ isOpen, onClose, onSubmitted }) => {
                     className="w-full bg-white border border-[#E6E2DD] p-3 text-[#2C2420] focus:outline-none focus:border-[#B08968] transition-colors" 
                     placeholder="Sri Ganganagar, Rajasthan" 
                   />
+                </div>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    className="w-full border border-[#B08968] text-[#B08968] py-3 uppercase tracking-[0.2em] text-[10px] font-bold hover:bg-[#B08968] hover:text-white transition-colors"
+                  >
+                    Detect Location
+                  </button>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {formData.locationStatus === 'captured' && 'Location captured'}
+                    {formData.locationStatus === 'detecting' && 'Detecting location...'}
+                    {formData.locationStatus === 'denied' && 'Location not shared. You can still submit the form.'}
+                    {formData.locationStatus === 'error' && 'Location not shared. You can still submit the form.'}
+                    {formData.locationStatus === 'idle' && 'Location is optional and will not block submission.'}
+                  </p>
                 </div>
                 <button 
                     type="submit" 

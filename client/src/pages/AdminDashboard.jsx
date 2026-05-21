@@ -504,7 +504,9 @@ const AdminDashboard = () => {
                      <tr>
                        <th className="p-4">Name</th>
                        <th className="p-4">Phone</th>
+                       <th className="p-4">Quantity/month</th>
                        <th className="p-4">Address</th>
+                       <th className="p-4">Location</th>
                        <th className="p-4">Date</th>
                        <th className="p-4">Status</th>
                        <th className="p-4">Actions</th>
@@ -512,10 +514,46 @@ const AdminDashboard = () => {
                    </thead>
                    <tbody className="divide-y divide-gray-100">
                      {requests.length > 0 ? requests.map((req) => (
+                       (() => {
+                         const latitude = req.locationLatitude !== null && req.locationLatitude !== undefined && req.locationLatitude !== ''
+                           ? Number(req.locationLatitude)
+                           : null;
+                         const longitude = req.locationLongitude !== null && req.locationLongitude !== undefined && req.locationLongitude !== ''
+                           ? Number(req.locationLongitude)
+                           : null;
+                         const accuracy = req.locationAccuracy !== null && req.locationAccuracy !== undefined && req.locationAccuracy !== ''
+                           ? Number(req.locationAccuracy)
+                           : null;
+                         const hasLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
+                         const locationHref = hasLocation
+                           ? `https://www.google.com/maps?q=${latitude},${longitude}`
+                           : null;
+
+                         return (
                        <tr key={req._id} className="hover:bg-gray-50">
                          <td className="p-4 font-medium text-gray-800">{req.fullName}</td>
                          <td className="p-4 text-gray-600">{req.phone}</td>
+                         <td className="p-4 text-gray-600">{req.quantityPerMonthKg ? `${req.quantityPerMonthKg} kg` : 'N/A'}</td>
                          <td className="p-4 text-gray-600 max-w-xs truncate">{req.address}</td>
+                         <td className="p-4 text-gray-600">
+                           {hasLocation ? (
+                             <div className="space-y-1">
+                               <a
+                                 href={locationHref}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="text-blue-600 hover:underline font-medium"
+                               >
+                                 View Location
+                               </a>
+                               {Number.isFinite(accuracy) && (
+                                 <div className="text-xs text-gray-500">Accuracy: {Math.round(accuracy)}m</div>
+                               )}
+                             </div>
+                           ) : (
+                             <span className="text-xs text-gray-400">Not shared</span>
+                           )}
+                         </td>
                          <td className="p-4 text-gray-500 text-xs">
                            {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}
                          </td>
@@ -549,9 +587,11 @@ const AdminDashboard = () => {
                            )}
                          </td>
                        </tr>
+                         );
+                       })()
                      )) : (
                        <tr>
-                         <td colSpan="6" className="p-8 text-center text-gray-400">
+                         <td colSpan="7" className="p-8 text-center text-gray-400">
                            No membership requests found.
                          </td>
                        </tr>
