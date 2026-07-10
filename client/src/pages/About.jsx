@@ -161,7 +161,7 @@ const About = () => {
               <h3 className="text-xl font-bold text-gray-900">Mr. Vikas Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director & Founder</p>
               <a href="mailto:vikas@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ parosa1482@gmail.com
+                ✉️ director@parosa.co.in
               </a>
             </div>
           </div>
@@ -178,7 +178,7 @@ const About = () => {
               <h3 className="text-xl font-bold text-gray-900">Mr. Sunil Dhayal</h3>
               <p className="text-amber-600 text-sm font-medium mb-2">Director</p>
               <a href="mailto:sunil@parosa.com" className="text-gray-500 hover:text-amber-600 text-sm flex items-center gap-2">
-                ✉️ parosa1482@gmail.com
+                ✉️ director@parosa.co.in
               </a>
             </div>
           </div>
